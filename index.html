@@ -204,6 +204,32 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .panel-header:hover {
+            background: var(--bg-hover);
+        }
+
+        .panel-toggle-icon {
+            transition: transform 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .panel-collapsed .panel-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .panel-collapsed .panel-content,
+        .panel-collapsed .layers-list {
+            display: none !important;
+        }
+
+        .panel-collapsed {
+            flex: 0 0 auto !important;
+            min-height: auto !important;
         }
 
         .panel-content {
@@ -574,6 +600,7 @@
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
+                overflow-y: auto;
             }
             
             .toolbar {
@@ -581,11 +608,28 @@
                 flex-direction: row;
                 padding: 0.5rem;
                 overflow-x: auto;
+                flex-shrink: 0;
             }
             
+            .canvas-container {
+                min-height: 350px;
+                flex: 0 0 auto;
+            }
+
             .right-sidebar {
                 width: 100%;
                 height: auto;
+                overflow: visible;
+            }
+
+            .properties-panel, .layers-panel {
+                flex: 0 0 auto;
+                overflow: visible;
+            }
+            
+            .panel-content, .layers-list {
+                overflow: visible;
+                max-height: none;
             }
         }
 
@@ -726,9 +770,14 @@
 
         <div class="right-sidebar">
             <!-- Properties Panel -->
-            <div class="properties-panel">
-                <div class="panel-header">
-                    <span>Brush Properties</span>
+            <div class="properties-panel" id="propertiesPanel">
+                <div class="panel-header" onclick="flowMap.togglePanel('propertiesPanel')">
+                    <span>
+                        <svg class="panel-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                        Brush Properties
+                    </span>
                 </div>
                 <div class="panel-content">
                     <div class="property-group">
@@ -775,9 +824,14 @@
             </div>
 
             <!-- Canvas Panel -->
-            <div class="canvas-panel">
-                <div class="panel-header">
-                    <span>Canvas</span>
+            <div class="canvas-panel" id="canvasPanel">
+                <div class="panel-header" onclick="flowMap.togglePanel('canvasPanel')">
+                    <span>
+                        <svg class="panel-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                        Canvas
+                    </span>
                 </div>
                 <div class="panel-content" style="padding-bottom: 0;">
                     <div class="property-group">
@@ -797,10 +851,15 @@
             </div>
 
             <!-- Layers Panel -->
-            <div class="layers-panel">
-                <div class="panel-header">
-                    <span>Layers</span>
-                    <button class="btn btn-icon" onclick="flowMap.addLayer()">
+            <div class="layers-panel" id="layersPanel">
+                <div class="panel-header" onclick="flowMap.togglePanel('layersPanel')">
+                    <span>
+                        <svg class="panel-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                        Layers
+                    </span>
+                    <button class="btn btn-icon" onclick="event.stopPropagation(); flowMap.addLayer()">
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                         </svg>
@@ -1661,6 +1720,13 @@
                     URL.revokeObjectURL(url);
                     this.closeExportModal();
                 }, `image/${format === 'jpg' ? 'jpeg' : format}`, quality);
+            }
+
+            togglePanel(panelId) {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.toggle('panel-collapsed');
+                }
             }
             
             animate() {
