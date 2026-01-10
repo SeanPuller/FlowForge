@@ -176,14 +176,23 @@
             box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
         }
 
-        /* Properties Panel */
-        .properties-panel {
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border);
+        /* Right Sidebar */
+        .right-sidebar {
             width: 280px;
             display: flex;
             flex-direction: column;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+        }
+
+        /* Properties Panel */
+        .properties-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
+            flex: 1;
+            min-height: 0;
         }
 
         .panel-header {
@@ -258,13 +267,22 @@
             color: var(--accent);
         }
 
+        /* Canvas Panel */
+        .canvas-panel {
+            width: 100%;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            flex: 0 0 auto;
+        }
+
         /* Layers Panel */
         .layers-panel {
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border);
-            width: 280px;
+            width: 100%;
             display: flex;
             flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .layers-list {
@@ -546,8 +564,7 @@
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .properties-panel,
-            .layers-panel {
+            .right-sidebar {
                 width: 240px;
             }
         }
@@ -565,10 +582,9 @@
                 overflow-x: auto;
             }
             
-            .properties-panel,
-            .layers-panel {
+            .right-sidebar {
                 width: 100%;
-                height: 200px;
+                height: auto;
             }
         }
 
@@ -676,85 +692,96 @@
             </div>
         </div>
 
-        <!-- Properties Panel -->
-        <div class="properties-panel">
-            <div class="panel-header">
-                <span>Properties</span>
-            </div>
-            <div class="panel-content">
-                <div class="property-group">
-                    <label class="property-label">Canvas Resolution</label>
-                    <select id="canvasResolution" onchange="flowMap.setResolution(this.value)">
-                        <option value="32">32 x 32</option>
-                        <option value="64">64 x 64</option>
-                        <option value="128">128 x 128</option>
-                        <option value="256">256 x 256</option>
-                        <option value="512">512 x 512</option>
-                        <option value="1024" selected>1024 x 1024</option>
-                        <option value="2048">2048 x 2048</option>
-                        <option value="4096">4096 x 4096</option>
-                    </select>
+        <div class="right-sidebar">
+            <!-- Properties Panel -->
+            <div class="properties-panel">
+                <div class="panel-header">
+                    <span>Brush Properties</span>
                 </div>
-                <div class="property-group">
-                    <label class="property-label">Brush Size</label>
-                    <div class="property-control">
-                        <input type="range" id="brushSize" min="1" max="400" value="60">
-                        <span class="value-display" id="brushSizeValue">60px</span>
+                <div class="panel-content">
+                    <div class="property-group">
+                        <label class="property-label">Brush Size</label>
+                        <div class="property-control">
+                            <input type="range" id="brushSize" min="1" max="400" value="60">
+                            <span class="value-display" id="brushSizeValue">60px</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="property-group">
-                    <label class="property-label">Flow Strength</label>
-                    <div class="property-control">
-                        <input type="range" id="flowStrength" min="0" max="100" value="100">
-                        <span class="value-display" id="flowStrengthValue">100%</span>
+                    <div class="property-group">
+                        <label class="property-label">Flow Strength</label>
+                        <div class="property-control">
+                            <input type="range" id="flowStrength" min="0" max="100" value="100">
+                            <span class="value-display" id="flowStrengthValue">100%</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="property-group">
-                    <label class="property-label">Mouse Direction</label>
-                    <div class="property-control">
-                        <span class="value-display" id="mouseDirection">0°</span>
+                    <div class="property-group">
+                        <label class="property-label">Mouse Direction</label>
+                        <div class="property-control">
+                            <span class="value-display" id="mouseDirection">0°</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="property-group">
-                    <label class="property-label">Opacity</label>
-                    <div class="property-control">
-                        <input type="range" id="brushOpacity" min="0" max="100" value="100">
-                        <span class="value-display" id="brushOpacityValue">100%</span>
+                    <div class="property-group">
+                        <label class="property-label">Opacity</label>
+                        <div class="property-control">
+                            <input type="range" id="brushOpacity" min="0" max="100" value="100">
+                            <span class="value-display" id="brushOpacityValue">100%</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="property-group">
-                    <label class="property-label">Smoothing</label>
-                    <div class="property-control">
-                        <input type="range" id="smoothing" min="0" max="100" value="20">
-                        <span class="value-display" id="smoothingValue">20%</span>
+                    <div class="property-group">
+                        <label class="property-label">Smoothing</label>
+                        <div class="property-control">
+                            <input type="range" id="smoothing" min="0" max="100" value="20">
+                            <span class="value-display" id="smoothingValue">20%</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="property-group">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="useMouseDirection" checked>
-                        <label for="useMouseDirection" class="property-label" style="margin-bottom: 0;">Use Mouse Direction</label>
+                    <div class="property-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="useMouseDirection" checked>
+                            <label for="useMouseDirection" class="property-label" style="margin-bottom: 0;">Use Mouse Direction</label>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Layers Panel -->
-        <div class="layers-panel">
-            <div class="panel-header">
-                <span>Layers</span>
-                <button class="btn btn-icon" onclick="flowMap.addLayer()">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                </button>
+            <!-- Canvas Panel -->
+            <div class="canvas-panel">
+                <div class="panel-header">
+                    <span>Canvas</span>
+                </div>
+                <div class="panel-content" style="padding-bottom: 0;">
+                    <div class="property-group">
+                        <label class="property-label">Resolution</label>
+                        <select id="canvasResolution" onchange="flowMap.setResolution(this.value)">
+                            <option value="32">32 x 32</option>
+                            <option value="64">64 x 64</option>
+                            <option value="128">128 x 128</option>
+                            <option value="256">256 x 256</option>
+                            <option value="512">512 x 512</option>
+                            <option value="1024" selected>1024 x 1024</option>
+                            <option value="2048">2048 x 2048</option>
+                            <option value="4096">4096 x 4096</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="layers-list" id="layersList">
-                <!-- Layers will be populated by JavaScript -->
+
+            <!-- Layers Panel -->
+            <div class="layers-panel">
+                <div class="panel-header">
+                    <span>Layers</span>
+                    <button class="btn btn-icon" onclick="flowMap.addLayer()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="layers-list" id="layersList">
+                    <!-- Layers will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>
@@ -1073,7 +1100,8 @@
                 const rect = this.canvas.getBoundingClientRect();
                 if (rect.width === 0) return;
                 const scale = this.canvas.width / rect.width;
-				const size = (this.brushSize * 2) / scale;
+                const brushScale = this.canvas.width / 1024;
+				const size = (this.brushSize * brushScale * 2) / scale;
 				this.brushCursor.style.width = `${size}px`;
 				this.brushCursor.style.height = `${size}px`;
 				
@@ -1094,7 +1122,8 @@
 				this.mouseY = (e.clientY - rect.top) * scale;
 
                 // Update brush cursor position
-                const visualSize = (this.brushSize * 2) / scale;
+                const brushScale = this.canvas.width / 1024;
+                const visualSize = (this.brushSize * brushScale * 2) / scale;
                 const cursorRadius = visualSize / 2;
                 
 				this.brushCursor.style.left = `${(e.clientX - rect.left) - cursorRadius}px`;
@@ -1173,15 +1202,18 @@
                 
                 ctx.globalAlpha = this.brushOpacity;
                 
+                // Scale brush size based on resolution (base 1024)
+                const brushScale = this.canvas.width / 1024;
+                
                 switch(this.currentTool) {
                     case 'brush':
-                        this.drawFlowBrush(ctx, x, y);
+                        this.drawFlowBrush(ctx, x, y, brushScale);
                         break;
                     case 'eraser':
-                        this.drawEraser(ctx, x, y);
+                        this.drawEraser(ctx, x, y, brushScale);
                         break;
                     case 'flow':
-                        this.drawFlowDirection(ctx, x, y);
+                        this.drawFlowDirection(ctx, x, y, brushScale);
                         break;
                 }
                 
@@ -1194,7 +1226,9 @@
                 this.updateCanvas();
             }
             
-            drawFlowBrush(ctx, x, y) {
+            drawFlowBrush(ctx, x, y, scale) {
+                const size = this.brushSize * scale;
+                
                 // Use mouse direction for flow color if enabled
                 let dirX, dirY;
                 
@@ -1220,15 +1254,17 @@
                 const g = Math.floor(128 + dirY * 127);
                 const b = 0; // Blue channel set to 0
                 
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, this.brushSize);
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
                 gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${this.flowStrength})`);
                 gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
                 
                 ctx.fillStyle = gradient;
-                ctx.fillRect(x - this.brushSize, y - this.brushSize, this.brushSize * 2, this.brushSize * 2);
+                ctx.fillRect(x - size, y - size, size * 2, size * 2);
             }
             
-            drawEraser(ctx, x, y) {
+            drawEraser(ctx, x, y, scale) {
+                const size = this.brushSize * scale;
+                
                 // Set composite operation to erase
                 ctx.globalCompositeOperation = 'destination-out';
                 
@@ -1237,21 +1273,23 @@
                 ctx.moveTo(this.lastX, this.lastY);
                 ctx.lineTo(x, y);
                 ctx.strokeStyle = 'rgba(0,0,0,1)';
-                ctx.lineWidth = this.brushSize * 2;
+                ctx.lineWidth = size * 2;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.stroke();
                 
                 // Also draw a circle for single clicks
                 ctx.beginPath();
-                ctx.arc(x, y, this.brushSize, 0, Math.PI * 2);
+                ctx.arc(x, y, size, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Reset composite operation
                 ctx.globalCompositeOperation = 'source-over';
             }
             
-            drawFlowDirection(ctx, x, y) {
+            drawFlowDirection(ctx, x, y, scale) {
+                const size = this.brushSize * scale;
+                
                 // Use mouse direction or fixed direction
                 let dirX, dirY;
                 if (this.useMouseDirection) {
@@ -1265,12 +1303,12 @@
                 const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
                 const data = imageData.data;
                 
-                for (let px = Math.max(0, x - this.brushSize); px < Math.min(ctx.canvas.width, x + this.brushSize); px++) {
-                    for (let py = Math.max(0, y - this.brushSize); py < Math.min(ctx.canvas.height, y + this.brushSize); py++) {
+                for (let px = Math.max(0, x - size); px < Math.min(ctx.canvas.width, x + size); px++) {
+                    for (let py = Math.max(0, y - size); py < Math.min(ctx.canvas.height, y + size); py++) {
                         const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
-                        if (dist <= this.brushSize) {
+                        if (dist <= size) {
                             const index = (py * ctx.canvas.width + px) * 4;
-                            const falloff = 1 - (dist / this.brushSize);
+                            const falloff = 1 - (dist / size);
                             
                             // Only modify red and green channels for flow, blue = 0
                             data[index] = Math.min(255, data[index] + dirX * falloff);
