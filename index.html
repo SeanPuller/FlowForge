@@ -162,6 +162,8 @@
         #flowCanvas {
             display: block;
             cursor: none;
+            width: 100%;
+            height: 100%;
         }
 
         #brushCursor {
@@ -399,26 +401,6 @@
         }
 
         /* Zoom Controls */
-        .zoom-controls {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .zoom-display {
-            min-width: 60px;
-            text-align: center;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
         /* Export Modal */
         .modal {
             position: fixed;
@@ -682,27 +664,8 @@
 
             
             <div class="canvas-wrapper">
-                <canvas id="flowCanvas" width="512" height="512"></canvas>
+                <canvas id="flowCanvas" width="1024" height="1024"></canvas>
                 <div id="brushCursor"></div>
-            </div>
-
-            <div class="zoom-controls">
-                <button class="btn btn-icon" onclick="flowMap.zoomOut()">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 13H5v-2h14v2z"/>
-                    </svg>
-                </button>
-                <span class="zoom-display">100%</span>
-                <button class="btn btn-icon" onclick="flowMap.zoomIn()">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                </button>
-                <button class="btn btn-icon" onclick="flowMap.resetZoom()">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 12c0 2.21.91 4.2 2.36 5.64L3 20h6v-6l-2.24 2.24C5.68 15.15 5 13.66 5 12c0-2.61 1.67-4.83 4-5.65V4.26C5.55 5.15 3 8.27 3 12zm8 5h2v-2h-2v2zM21 4h-6v6l2.24-2.24C18.32 8.85 19 10.34 19 12c0 2.61-1.67 4.83-4 5.65v2.09c3.45-.89 6-4.01 6-7.74 0-2.21-.91-4.2-2.36-5.64L21 4zm-10 9h2V7h-2v6z"/>
-                    </svg>
-                </button>
             </div>
             <div class="flow-visualization">
                 <div class="property-label">Visualization</div>
@@ -722,8 +685,8 @@
                 <div class="property-group">
                     <label class="property-label">Brush Size</label>
                     <div class="property-control">
-                        <input type="range" id="brushSize" min="1" max="400" value="50">
-                        <span class="value-display" id="brushSizeValue">50px</span>
+                        <input type="range" id="brushSize" min="1" max="400" value="60">
+                        <span class="value-display" id="brushSizeValue">60px</span>
                     </div>
                 </div>
 
@@ -786,7 +749,7 @@
     <!-- Status Bar -->
     <div class="status-bar">
         <div class="status-info">
-            <span>Canvas: <strong id="canvasSize">512x512</strong></span>
+            <span>Canvas: <strong id="canvasSize">1024x1024</strong></span>
             <span>Mouse: <strong id="mousePos">0, 0</strong></span>
             <span>Tool: <strong id="currentTool">Brush</strong></span>
             <span>Flow: <strong id="flowVector">0.0, 0.0</strong></span>
@@ -812,11 +775,11 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Width</label>
-                    <input type="number" id="exportWidth" value="512" min="32" max="4096">
+                    <input type="number" id="exportWidth" value="1024" min="32" max="4096">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Height</label>
-                    <input type="number" id="exportHeight" value="512" min="32" max="4096">
+                    <input type="number" id="exportHeight" value="1024" min="32" max="4096">
                 </div>
             </div>
 
@@ -876,14 +839,11 @@
                 
                 this.isDrawing = false;
                 this.currentTool = 'brush';
-                this.brushSize = 20;
-                this.flowStrength = 0.5;
+                this.brushSize = 60;
+                this.flowStrength = 1;
                 this.brushOpacity = 1;
                 this.smoothing = 0.2;
                 this.visualization = 'flow';
-                this.zoom = 1;
-                this.panX = 0;
-                this.panY = 0;
                 
                 // Mouse direction tracking
                 this.mouseX = 0;
@@ -950,12 +910,25 @@
                 });
                 
                 this.setupEventListeners();
+                window.addEventListener('resize', this.handleResize.bind(this));
+                this.handleResize();
                 this.updateCanvas();
                 this.updateLayersList();
                 this.saveHistory();
                 this.animate();
             }
             
+            handleResize() {
+                const container = document.querySelector('.canvas-container');
+                const wrapper = document.querySelector('.canvas-wrapper');
+                const rect = container.getBoundingClientRect();
+                const size = Math.max(0, Math.min(rect.width, rect.height) - 40);
+                
+                wrapper.style.width = `${size}px`;
+                wrapper.style.height = `${size}px`;
+                this.updateBrushCursor();
+            }
+
             setupEventListeners() {
                 // Canvas events
                 this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
@@ -1044,7 +1017,10 @@
             }
             
 			updateBrushCursor() {
-				const size = this.brushSize * 2 * this.zoom;
+                const rect = this.canvas.getBoundingClientRect();
+                if (rect.width === 0) return;
+                const scale = this.canvas.width / rect.width;
+				const size = (this.brushSize * 2) / scale;
 				this.brushCursor.style.width = `${size}px`;
 				this.brushCursor.style.height = `${size}px`;
 				
@@ -1060,19 +1036,16 @@
             
 			handleMouseMove(e) {
 				const rect = this.canvas.getBoundingClientRect();
-				this.mouseX = (e.clientX - rect.left) / this.zoom;
-				this.mouseY = (e.clientY - rect.top) / this.zoom;
+                const scale = this.canvas.width / rect.width;
+				this.mouseX = (e.clientX - rect.left) * scale;
+				this.mouseY = (e.clientY - rect.top) * scale;
 
-				// --- FIX START ---
-				// Get the position relative to the canvas wrapper
-				const wrapperRect = this.canvas.parentElement.getBoundingClientRect();
-				const relativeX = e.clientX - wrapperRect.left;
-				const relativeY = e.clientY - wrapperRect.top;
-
-				// Update brush cursor position, centered on the mouse
-				this.brushCursor.style.left = `${relativeX - this.brushSize * this.zoom}px`;
-				this.brushCursor.style.top = `${relativeY - this.brushSize * this.zoom}px`;
-				// --- FIX END ---
+                // Update brush cursor position
+                const visualSize = (this.brushSize * 2) / scale;
+                const cursorRadius = visualSize / 2;
+                
+				this.brushCursor.style.left = `${(e.clientX - rect.left) - cursorRadius}px`;
+				this.brushCursor.style.top = `${(e.clientY - rect.top) - cursorRadius}px`;
 
 				// Calculate mouse velocity and direction
 				this.mouseVelocityX = this.mouseX - this.lastMouseX;
@@ -1120,14 +1093,16 @@
                 
                 this.isDrawing = true;
                 const rect = this.canvas.getBoundingClientRect();
-                this.lastX = (e.clientX - rect.left) / this.zoom;
-                this.lastY = (e.clientY - rect.top) / this.zoom;
+                const scale = this.canvas.width / rect.width;
+                this.lastX = (e.clientX - rect.left) * scale;
+                this.lastY = (e.clientY - rect.top) * scale;
             }
             
             draw(e) {
                 const rect = this.canvas.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / this.zoom;
-                const y = (e.clientY - rect.top) / this.zoom;
+                const scale = this.canvas.width / rect.width;
+                const x = (e.clientX - rect.left) * scale;
+                const y = (e.clientY - rect.top) * scale;
                 
                 if (!this.isDrawing) return;
                 
@@ -1529,27 +1504,6 @@
                 this.layers[index].visible = !this.layers[index].visible;
                 this.updateCanvas();
                 this.updateLayersList();
-            }
-            
-            zoomIn() {
-                this.zoom = Math.min(this.zoom * 1.2, 5);
-                this.updateZoom();
-            }
-            
-            zoomOut() {
-                this.zoom = Math.max(this.zoom / 1.2, 0.2);
-                this.updateZoom();
-            }
-            
-            resetZoom() {
-                this.zoom = 1;
-                this.updateZoom();
-            }
-            
-            updateZoom() {
-                this.canvas.style.transform = `scale(${this.zoom})`;
-                document.querySelector('.zoom-display').textContent = `${Math.round(this.zoom * 100)}%`;
-                this.updateBrushCursor();
             }
             
             showExportModal() {
