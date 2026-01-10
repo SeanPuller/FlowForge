@@ -1321,6 +1321,20 @@
                 
                 switch(this.currentTool) {
                     case 'brush':
+                        const dx = x - this.lastX;
+                        const dy = y - this.lastY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const size = this.brushSize * brushScale;
+                        const spacing = Math.max(1, size * 0.2);
+                        
+                        const steps = Math.ceil(distance / spacing);
+                        
+                        for (let i = 1; i < steps; i++) {
+                            const t = i / steps;
+                            const cx = this.lastX + dx * t;
+                            const cy = this.lastY + dy * t;
+                            this.drawFlowBrush(ctx, cx, cy, brushScale);
+                        }
                         this.drawFlowBrush(ctx, x, y, brushScale);
                         break;
                     case 'eraser':
