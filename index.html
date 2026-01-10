@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flow Forge - Professional Flow Map Texture Painter</title>
+    <title>FlowMap Studio - Professional Flow Map Texture Painter</title>
     <style>
         * {
             margin: 0;
@@ -606,15 +606,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Grid Overlay */
-        .grid-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            opacity: 0.2;
-        }
-
         /* Checkbox styling */
         .checkbox-wrapper {
             display: flex;
@@ -635,7 +626,7 @@
     <header class="header">
         <div class="logo">
             <div class="logo-icon">F</div>
-            <span>Flow Forge</span>
+            <span>FlowMap Studio</span>
         </div>
         <div class="header-controls">
             <button class="btn btn-icon" onclick="flowMap.undo()" title="Undo">
@@ -699,7 +690,6 @@
             
             <div class="canvas-wrapper">
                 <canvas id="flowCanvas" width="512" height="512"></canvas>
-                <canvas id="gridCanvas" class="grid-overlay" width="512" height="512"></canvas>
                 <div id="brushCursor"></div>
             </div>
 
@@ -882,14 +872,12 @@
             constructor() {
                 this.canvas = document.getElementById('flowCanvas');
                 this.ctx = this.canvas.getContext('2d');
-                this.gridCanvas = document.getElementById('gridCanvas');
-                this.gridCtx = this.gridCanvas.getContext('2d');
                 this.brushCursor = document.getElementById('brushCursor');
                 
                 this.isDrawing = false;
                 this.currentTool = 'brush';
-                this.brushSize = 50;
-                this.flowStrength = 1;
+                this.brushSize = 20;
+                this.flowStrength = 0.5;
                 this.brushOpacity = 1;
                 this.smoothing = 0.2;
                 this.visualization = 'flow';
@@ -962,7 +950,6 @@
                 });
                 
                 this.setupEventListeners();
-                this.drawGrid();
                 this.updateCanvas();
                 this.updateLayersList();
                 this.saveHistory();
@@ -1337,26 +1324,6 @@
                 this.ctx.restore();
             }
             
-            drawGrid() {
-                const gridSize = 32;
-                this.gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                this.gridCtx.lineWidth = 1;
-                
-                for (let x = 0; x <= this.gridCanvas.width; x += gridSize) {
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(x, 0);
-                    this.gridCtx.lineTo(x, this.gridCanvas.height);
-                    this.gridCtx.stroke();
-                }
-                
-                for (let y = 0; y <= this.gridCanvas.height; y += gridSize) {
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(0, y);
-                    this.gridCtx.lineTo(this.gridCanvas.width, y);
-                    this.gridCtx.stroke();
-                }
-            }
-            
             setTool(tool) {
                 this.currentTool = tool;
                 document.querySelectorAll('.tool-btn').forEach(btn => {
@@ -1575,7 +1542,6 @@
             
             updateZoom() {
                 this.canvas.style.transform = `scale(${this.zoom})`;
-                this.gridCanvas.style.transform = `scale(${this.zoom})`;
                 document.querySelector('.zoom-display').textContent = `${Math.round(this.zoom * 100)}%`;
                 this.updateBrushCursor();
             }
