@@ -1025,6 +1025,7 @@
                 this.canvas.addEventListener('mouseleave', this.stopDrawing.bind(this));
                 this.canvas.addEventListener('mouseenter', this.showBrushCursor.bind(this));
                 this.canvas.addEventListener('mouseleave', this.hideBrushCursor.bind(this));
+                this.canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
                 
                 // Touch events
                 this.canvas.addEventListener('touchstart', this.handleTouch.bind(this));
@@ -1130,6 +1131,19 @@
             
             hideBrushCursor() {
                 this.brushCursor.style.display = 'none';
+            }
+
+            handleWheel(e) {
+                e.preventDefault();
+                const step = 5;
+                if (e.deltaY < 0) {
+                    this.brushSize = Math.min(400, this.brushSize + step);
+                } else {
+                    this.brushSize = Math.max(1, this.brushSize - step);
+                }
+                document.getElementById('brushSize').value = this.brushSize;
+                document.getElementById('brushSizeValue').textContent = this.brushSize;
+                this.updateBrushCursor();
             }
             
 			updateBrushCursor() {
