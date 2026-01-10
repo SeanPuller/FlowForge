@@ -679,9 +679,22 @@
         <!-- Properties Panel -->
         <div class="properties-panel">
             <div class="panel-header">
-                <span>Brush Properties</span>
+                <span>Properties</span>
             </div>
             <div class="panel-content">
+                <div class="property-group">
+                    <label class="property-label">Canvas Resolution</label>
+                    <select id="canvasResolution" onchange="flowMap.setResolution(this.value)">
+                        <option value="32">32 x 32</option>
+                        <option value="64">64 x 64</option>
+                        <option value="128">128 x 128</option>
+                        <option value="256">256 x 256</option>
+                        <option value="512">512 x 512</option>
+                        <option value="1024" selected>1024 x 1024</option>
+                        <option value="2048">2048 x 2048</option>
+                        <option value="4096">4096 x 4096</option>
+                    </select>
+                </div>
                 <div class="property-group">
                     <label class="property-label">Brush Size</label>
                     <div class="property-control">
@@ -918,6 +931,46 @@
                 this.animate();
             }
             
+            setResolution(size) {
+                size = parseInt(size);
+                const oldWidth = this.canvas.width;
+                const oldHeight = this.canvas.height;
+                
+                // Save current content
+                const savedLayers = this.layers.map(layer => {
+                    const temp = document.createElement('canvas');
+                    temp.width = oldWidth;
+                    temp.height = oldHeight;
+                    temp.getContext('2d').drawImage(layer.canvas, 0, 0);
+                    return temp;
+                });
+                
+                // Resize main canvas
+                this.canvas.width = size;
+                this.canvas.height = size;
+                
+                // Resize layers and restore content
+                this.layers.forEach((layer, i) => {
+                    layer.canvas.width = size;
+                    layer.canvas.height = size;
+                    layer.ctx = layer.canvas.getContext('2d');
+                    
+                    // Restore content scaled
+                    layer.ctx.drawImage(savedLayers[i], 0, 0, size, size);
+                });
+                
+                // Reset history as dimensions changed
+                this.history = [];
+                this.historyStep = -1;
+                this.saveHistory();
+                
+                // Update UI
+                document.getElementById('canvasSize').textContent = `${size}x${size}`;
+                this.updateCanvas();
+                this.updateLayersList();
+                this.updateBrushCursor();
+            }
+
             handleResize() {
                 const container = document.querySelector('.canvas-container');
                 const wrapper = document.querySelector('.canvas-wrapper');
@@ -1259,8 +1312,8 @@
             }
             
             drawFlowArrows() {
-                const spacing = 16;
-                const arrowSize = 50;
+                const spacing = 32;
+                const arrowSize = 30;
                 
                 this.ctx.save();
                 this.ctx.globalAlpha = 0.5;
