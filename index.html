@@ -616,6 +616,43 @@
             accent-color: var(--accent);
             cursor: pointer;
         }
+
+        /* Radial Direction Picker */
+        .direction-picker {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--bg-tertiary);
+            position: relative;
+            cursor: pointer;
+            margin: 0.5rem auto;
+        }
+
+        .direction-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 2px;
+            background: var(--accent);
+            transform-origin: 0 50%;
+            transform: rotate(0deg);
+            pointer-events: none;
+            margin-top: -1px;
+        }
+        
+        .direction-indicator::after {
+            content: '';
+            position: absolute;
+            right: 4px;
+            top: -3px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 107, 53, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -721,6 +758,16 @@
                         <div class="checkbox-wrapper">
                             <input type="checkbox" id="useMouseDirection" checked>
                             <label for="useMouseDirection" class="property-label" style="margin-bottom: 0;">Use Mouse Direction</label>
+                        </div>
+                    </div>
+
+                    <div class="property-group" id="manualDirectionGroup" style="display: none;">
+                        <label class="property-label">Direction Angle</label>
+                        <div class="property-control" style="flex-direction: column;">
+                            <div id="directionPicker" class="direction-picker">
+                                <div id="directionIndicator" class="direction-indicator"></div>
+                            </div>
+                            <span class="value-display" id="manualDirectionValue">0°</span>
                         </div>
                     </div>
                 </div>
@@ -854,6 +901,7 @@
                 this.mouseVelocityY = 0;
                 this.mouseDirection = 0;
                 this.useMouseDirection = true;
+                this.manualDirection = 0;
                 
                 this.lastX = 0;
                 this.lastY = 0;
@@ -1003,6 +1051,41 @@
                 
                 document.getElementById('useMouseDirection').addEventListener('change', (e) => {
                     this.useMouseDirection = e.target.checked;
+                    document.getElementById('manualDirectionGroup').style.display = this.useMouseDirection ? 'none' : 'block';
+                });
+
+                // Radial direction picker
+                const directionPicker = document.getElementById('directionPicker');
+                let isDraggingDirection = false;
+
+                const updateDirection = (e) => {
+                    const rect = directionPicker.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    let angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                    let degrees = Math.round(angle * (180 / Math.PI));
+                    if (degrees < 0) degrees += 360;
+                    
+                    this.manualDirection = degrees;
+                    document.getElementById('manualDirectionValue').textContent = `${this.manualDirection}°`;
+                    document.getElementById('directionIndicator').style.transform = `rotate(${this.manualDirection}deg)`;
+                };
+
+                directionPicker.addEventListener('mousedown', (e) => {
+                    isDraggingDirection = true;
+                    updateDirection(e);
+                });
+                
+                window.addEventListener('mousemove', (e) => {
+                    if (isDraggingDirection) {
+                        e.preventDefault();
+                        updateDirection(e);
+                    }
+                });
+                
+                window.addEventListener('mouseup', () => {
+                    isDraggingDirection = false;
                 });
                 
                 document.getElementById('exportQuality').addEventListener('input', (e) => {
@@ -1191,9 +1274,9 @@
                         dirY = (dirY / length) * this.flowStrength;
                     }
                 } else {
-                    // Use default direction (right)
-                    dirX = this.flowStrength;
-                    dirY = 0;
+                    const rad = this.manualDirection * (Math.PI / 180);
+                    dirX = Math.cos(rad) * this.flowStrength;
+                    dirY = Math.sin(rad) * this.flowStrength;
                 }
                 
                 // Convert to RGB values (0-255 range)
