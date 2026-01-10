@@ -734,7 +734,7 @@
                         <label class="property-label">Brush Size</label>
                         <div class="property-control">
                             <input type="range" id="brushSize" min="1" max="400" value="60">
-                            <span class="value-display" id="brushSizeValue">60px</span>
+                            <span class="value-display" id="brushSizeValue">60</span>
                         </div>
                     </div>
 
@@ -1034,7 +1034,7 @@
                 // Property controls
                 document.getElementById('brushSize').addEventListener('input', (e) => {
                     this.brushSize = parseInt(e.target.value);
-                    document.getElementById('brushSizeValue').textContent = `${this.brushSize}px`;
+                    document.getElementById('brushSizeValue').textContent = `${this.brushSize}`;
                     this.updateBrushCursor();
                 });
                 
