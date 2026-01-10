@@ -10,3 +10,4 @@ https://seanpuller.github.io/FlowForge/
 ## TODO
 - Test flowmap output
 - Add tilable painting
+- Add export options for opengl/directx?
