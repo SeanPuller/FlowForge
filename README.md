@@ -4,12 +4,9 @@
 
 ## Website
 https://seanpuller.github.io/FlowForge/
-<img width="2564" height="1232" alt="image" src="https://github.com/user-attachments/assets/f7de52b9-4524-413a-93b6-19b7dd7ae235" />
+<img width="2558" height="1279" alt="image" src="https://github.com/user-attachments/assets/5d98c18c-54ee-42ca-996d-126809e616ff" />
+
 
 ## TODO
 - Test flowmap output
-- Add Canvas size selection
-- Add direction picker
-- Update brush properties
-- Fix initial arrow directions
-- Fix tilable painting
+- Add tilable painting
