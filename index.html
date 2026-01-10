@@ -710,25 +710,10 @@
                     </div>
 
                     <div class="property-group">
-                        <label class="property-label">Mouse Direction</label>
-                        <div class="property-control">
-                            <span class="value-display" id="mouseDirection">0°</span>
-                        </div>
-                    </div>
-
-                    <div class="property-group">
                         <label class="property-label">Opacity</label>
                         <div class="property-control">
                             <input type="range" id="brushOpacity" min="0" max="100" value="100">
                             <span class="value-display" id="brushOpacityValue">100%</span>
-                        </div>
-                    </div>
-
-                    <div class="property-group">
-                        <label class="property-label">Smoothing</label>
-                        <div class="property-control">
-                            <input type="range" id="smoothing" min="0" max="100" value="20">
-                            <span class="value-display" id="smoothingValue">20%</span>
                         </div>
                     </div>
 
@@ -1014,11 +999,7 @@
                     this.brushOpacity = parseInt(e.target.value) / 100;
                     document.getElementById('brushOpacityValue').textContent = `${e.target.value}%`;
                 });
-                
-                document.getElementById('smoothing').addEventListener('input', (e) => {
-                    this.smoothing = parseInt(e.target.value) / 100;
-                    document.getElementById('smoothingValue').textContent = `${e.target.value}%`;
-                });
+				
                 
                 document.getElementById('useMouseDirection').addEventListener('change', (e) => {
                     this.useMouseDirection = e.target.checked;
@@ -1112,8 +1093,6 @@
 				
 				// Update displays
 				document.getElementById('mousePos').textContent = `${Math.round(this.mouseX)}, ${Math.round(this.mouseY)}`;
-				const degrees = Math.round(this.mouseDirection * 180 / Math.PI);
-				document.getElementById('mouseDirection').textContent = `${degrees}°`;
 				
 				const flowX = (Math.cos(this.mouseDirection) * this.flowStrength).toFixed(2);
 				const flowY = (Math.sin(this.mouseDirection) * this.flowStrength).toFixed(2);
