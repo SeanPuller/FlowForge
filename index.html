@@ -738,16 +738,16 @@
                 <div class="property-group">
                     <label class="property-label">Brush Size</label>
                     <div class="property-control">
-                        <input type="range" id="brushSize" min="1" max="100" value="20">
-                        <span class="value-display" id="brushSizeValue">20px</span>
+                        <input type="range" id="brushSize" min="1" max="400" value="50">
+                        <span class="value-display" id="brushSizeValue">50px</span>
                     </div>
                 </div>
 
                 <div class="property-group">
                     <label class="property-label">Flow Strength</label>
                     <div class="property-control">
-                        <input type="range" id="flowStrength" min="0" max="100" value="50">
-                        <span class="value-display" id="flowStrengthValue">50%</span>
+                        <input type="range" id="flowStrength" min="0" max="100" value="100">
+                        <span class="value-display" id="flowStrengthValue">100%</span>
                     </div>
                 </div>
 
@@ -1164,7 +1164,7 @@
                 
                 if (this.useMouseDirection) {
                     dirX = this.mouseVelocityX;
-                    dirY = this.mouseVelocityY;
+                    dirY = this.mouseVelocityY * -1;
                     
                     // Normalize and scale
                     const length = Math.sqrt(dirX * dirX + dirY * dirY);
@@ -1325,7 +1325,8 @@
                         
                         // Read flow from red and green channels
                         const flowX = (pixel[0] - 128) / 128;
-                        const flowY = (pixel[1] - 128) / 128;
+                        const flowY = ((pixel[1] - 128) / 128) * - 1;
+                        
                         const magnitude = Math.sqrt(flowX * flowX + flowY * flowY);
                         
                         if (magnitude > 0.1) {
