@@ -1143,10 +1143,10 @@
                 }
                 document.getElementById('brushSize').value = this.brushSize;
                 document.getElementById('brushSizeValue').textContent = this.brushSize;
-                this.updateBrushCursor();
+                this.updateBrushCursor(e.clientX, e.clientY);
             }
             
-			updateBrushCursor() {
+			updateBrushCursor(clientX, clientY) {
                 const rect = this.canvas.getBoundingClientRect();
                 if (rect.width === 0) return;
                 const scale = this.canvas.width / rect.width;
@@ -1154,6 +1154,12 @@
 				const size = (this.brushSize * brushScale * 2) / scale;
 				this.brushCursor.style.width = `${size}px`;
 				this.brushCursor.style.height = `${size}px`;
+
+                if (clientX !== undefined && clientY !== undefined) {
+                    const cursorRadius = size / 2;
+                    this.brushCursor.style.left = `${(clientX - rect.left) - cursorRadius}px`;
+                    this.brushCursor.style.top = `${(clientY - rect.top) - cursorRadius}px`;
+                }
 				
 				// Update cursor appearance based on tool
 				if (this.currentTool === 'eraser') {
