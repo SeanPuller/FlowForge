@@ -274,6 +274,7 @@
             gap: 0.5rem;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
 
         .layer-item:hover {
@@ -283,6 +284,23 @@
         .layer-item.active {
             border-color: var(--accent);
             background: rgba(0, 212, 255, 0.1);
+        }
+
+        .layer-item.locked {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .layer-item.locked::after {
+            content: '';
+            position: absolute;
+            top: 0.5rem;
+            right: 2.5rem;
+            width: 16px;
+            height: 16px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0a0'%3E%3Cpath d='M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
         }
 
         .layer-thumbnail {
@@ -803,18 +821,7 @@
                 </button>
             </div>
             <div class="layers-list" id="layersList">
-                <div class="layer-item active">
-                    <canvas class="layer-thumbnail" id="layerThumb1"></canvas>
-                    <div class="layer-info">
-                        <div class="layer-name">Flow Layer</div>
-                        <div class="layer-type">Direction Map</div>
-                    </div>
-                    <button class="layer-visibility">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                        </svg>
-                    </button>
-                </div>
+                <!-- Layers will be populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -938,19 +945,31 @@
                 this.historyStep = -1;
                 this.maxHistory = 50;
                 
+                // Initialize with two layers: locked background and transparent active layer
                 this.layers = [
                     {
                         id: 1,
-                        name: 'Flow Layer',
+                        name: 'Background',
+                        type: 'background',
+                        visible: true,
+                        opacity: 1,
+                        locked: true,
+                        canvas: document.createElement('canvas'),
+                        ctx: null
+                    },
+                    {
+                        id: 2,
+                        name: 'Flow Layer 1',
                         type: 'direction',
                         visible: true,
                         opacity: 1,
+                        locked: false,
                         canvas: document.createElement('canvas'),
                         ctx: null
                     }
                 ];
                 
-                this.currentLayer = 0;
+                this.currentLayer = 1; // Start with the transparent layer selected
                 this.fps = 60;
                 this.lastFrameTime = performance.now();
                 
@@ -963,12 +982,13 @@
                     layer.canvas.width = this.canvas.width;
                     layer.canvas.height = this.canvas.height;
                     layer.ctx = layer.canvas.getContext('2d');
-                    // Set initial background to 0.5, 0.5, 0.0 (RGB: 128, 128, 0) only for first layer
-                    if (layer.id === 1) {
+                    
+                    if (layer.type === 'background') {
+                        // Set background layer to 0.5, 0.5, 0.0 (RGB: 128, 128, 0)
                         layer.ctx.fillStyle = 'rgb(128, 128, 0)';
                         layer.ctx.fillRect(0, 0, layer.canvas.width, layer.canvas.height);
                     } else {
-                        // New layers get transparent background
+                        // Other layers get transparent background
                         layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
                     }
                 });
@@ -976,6 +996,7 @@
                 this.setupEventListeners();
                 this.drawGrid();
                 this.updateCanvas();
+                this.updateLayersList();
                 this.saveHistory();
                 this.animate();
             }
@@ -1114,6 +1135,11 @@
             }
             
             startDrawing(e) {
+                // Prevent drawing on locked layers
+                if (this.layers[this.currentLayer].locked) {
+                    return;
+                }
+                
                 this.isDrawing = true;
                 const rect = this.canvas.getBoundingClientRect();
                 this.lastX = (e.clientX - rect.left) / this.zoom;
@@ -1133,7 +1159,16 @@
                 if (!this.isDrawing) return;
                 
                 const layer = this.layers[this.currentLayer];
+                
+                // Don't draw on locked layers
+                if (layer.locked) {
+                    return;
+                }
+                
                 const ctx = layer.ctx;
+                
+                // Save the current composite operation
+                const currentCompositeOperation = ctx.globalCompositeOperation;
                 
                 ctx.globalAlpha = this.brushOpacity;
                 
@@ -1151,6 +1186,9 @@
                         this.drawSmudge(ctx, x, y);
                         break;
                 }
+                
+                // Restore the composite operation
+                ctx.globalCompositeOperation = currentCompositeOperation;
                 
                 this.lastX = x;
                 this.lastY = y;
@@ -1193,10 +1231,25 @@
             }
             
             drawEraser(ctx, x, y) {
+                // Set composite operation to erase
                 ctx.globalCompositeOperation = 'destination-out';
+                
+                // Draw eraser stroke
+                ctx.beginPath();
+                ctx.moveTo(this.lastX, this.lastY);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.lineWidth = this.brushSize * 2;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+                
+                // Also draw a circle for single clicks
                 ctx.beginPath();
                 ctx.arc(x, y, this.brushSize, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Reset composite operation
                 ctx.globalCompositeOperation = 'source-over';
             }
             
@@ -1293,7 +1346,7 @@
                 // Clear main canvas
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 
-                // Draw visible layers
+                // Draw visible layers in order
                 this.layers.forEach(layer => {
                     if (layer.visible) {
                         this.ctx.globalAlpha = layer.opacity;
@@ -1446,13 +1499,14 @@
             
             clearCanvas() {
                 const layer = this.layers[this.currentLayer];
-                // Only clear to background color for first layer, others stay transparent
-                if (layer.id === 1) {
-                    layer.ctx.fillStyle = 'rgb(128, 128, 0)';
-                    layer.ctx.fillRect(0, 0, layer.canvas.width, layer.canvas.height);
-                } else {
-                    layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+                
+                // Don't clear locked background layer
+                if (layer.locked) {
+                    return;
                 }
+                
+                // Clear to transparent for non-background layers
+                layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
                 this.updateCanvas();
                 this.saveHistory();
             }
@@ -1460,10 +1514,11 @@
             addLayer() {
                 const newLayer = {
                     id: this.layers.length + 1,
-                    name: `Layer ${this.layers.length + 1}`,
+                    name: `Flow Layer ${this.layers.length}`,
                     type: 'direction',
                     visible: true,
                     opacity: 1,
+                    locked: false,
                     canvas: document.createElement('canvas'),
                     ctx: null
                 };
@@ -1475,6 +1530,7 @@
                 newLayer.ctx.clearRect(0, 0, newLayer.canvas.width, newLayer.canvas.height);
                 
                 this.layers.push(newLayer);
+                this.currentLayer = this.layers.length - 1; // Select the new layer
                 this.updateLayersList();
             }
             
@@ -1484,14 +1540,17 @@
                 
                 this.layers.forEach((layer, index) => {
                     const item = document.createElement('div');
-                    item.className = `layer-item ${index === this.currentLayer ? 'active' : ''}`;
-                    item.onclick = () => this.selectLayer(index);
+                    item.className = `layer-item ${index === this.currentLayer ? 'active' : ''} ${layer.locked ? 'locked' : ''}`;
+                    
+                    if (!layer.locked) {
+                        item.onclick = () => this.selectLayer(index);
+                    }
                     
                     item.innerHTML = `
                         <canvas class="layer-thumbnail" id="layerThumb${layer.id}"></canvas>
                         <div class="layer-info">
                             <div class="layer-name">${layer.name}</div>
-                            <div class="layer-type">${layer.type} Map</div>
+                            <div class="layer-type">${layer.type === 'background' ? 'Background' : 'Direction Map'}</div>
                         </div>
                         <button class="layer-visibility" onclick="event.stopPropagation(); flowMap.toggleLayerVisibility(${index})">
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -1528,6 +1587,11 @@
             }
             
             selectLayer(index) {
+                // Don't select locked layers
+                if (this.layers[index].locked) {
+                    return;
+                }
+                
                 this.currentLayer = index;
                 this.updateLayersList();
             }
