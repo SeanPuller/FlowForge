@@ -806,15 +806,18 @@
                 <input type="text" id="exportFileName" value="flowmap" placeholder="Enter filename">
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Width</label>
-                    <input type="number" id="exportWidth" value="1024" min="32" max="4096">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Height</label>
-                    <input type="number" id="exportHeight" value="1024" min="32" max="4096">
-                </div>
+            <div class="form-group">
+                <label class="form-label">Resolution</label>
+                <select id="exportResolution">
+                    <option value="32">32 x 32</option>
+                    <option value="64">64 x 64</option>
+                    <option value="128">128 x 128</option>
+                    <option value="256">256 x 256</option>
+                    <option value="512">512 x 512</option>
+                    <option value="1024" selected>1024 x 1024</option>
+                    <option value="2048">2048 x 2048</option>
+                    <option value="4096">4096 x 4096</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -828,31 +831,9 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Encoding</label>
-                <select id="exportEncoding">
-                    <option value="rgb">RGB Flow (X=Red, Y=Green)</option>
-                    <option value="rg">RG Flow (X=Red, Y=Green, Blue=0)</option>
-                    <option value="normal">Normal Map Format</option>
-                    <option value="hsv">HSV (Hue=Direction, Saturation=Magnitude)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label class="form-label">Quality</label>
                 <input type="range" id="exportQuality" min="0" max="100" value="100">
                 <span class="value-display" id="exportQualityValue">100%</span>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="exportGrid" checked> Include grid overlay
-                </label>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="exportArrows"> Include flow arrows
-                </label>
             </div>
 
             <div style="display: flex; gap: 0.5rem; margin-top: 2rem;">
@@ -1562,10 +1543,10 @@
             }
             
             exportTexture() {
-                const width = parseInt(document.getElementById('exportWidth').value);
-                const height = parseInt(document.getElementById('exportHeight').value);
+                const resolution = parseInt(document.getElementById('exportResolution').value);
+                const width = resolution;
+                const height = resolution;
                 const format = document.getElementById('exportFormat').value;
-                const encoding = document.getElementById('exportEncoding').value;
                 const quality = parseInt(document.getElementById('exportQuality').value) / 100;
                 const filename = document.getElementById('exportFileName').value || 'flowmap';
                 
@@ -1583,70 +1564,6 @@
                     }
                 });
                 
-                // Apply encoding
-                if (encoding !== 'rgb') {
-                    const imageData = exportCtx.getImageData(0, 0, width, height);
-                    const data = imageData.data;
-                    
-                    switch(encoding) {
-                        case 'rg':
-                            for (let i = 0; i < data.length; i += 4) {
-                                data[i + 2] = 0; // Set blue to 0
-                            }
-                            break;
-                        case 'normal':
-                            for (let i = 0; i < data.length; i += 4) {
-                                // Convert flow to normal map format
-                                data[i] = data[i] * 2 - 255;
-                                data[i + 1] = data[i + 1] * 2 - 255;
-                                data[i + 2] = 255;
-                            }
-                            break;
-                        case 'hsv':
-                            for (let i = 0; i < data.length; i += 4) {
-                                const angle = Math.atan2(data[i + 1] - 128, data[i] - 128);
-                                const hue = (angle + Math.PI) / (2 * Math.PI);
-                                const magnitude = Math.sqrt((data[i] - 128) ** 2 + (data[i + 1] - 128) ** 2) / 128;
-                                
-                                const rgb = this.hsvToRgb(hue, magnitude, 1);
-                                data[i] = rgb.r;
-                                data[i + 1] = rgb.g;
-                                data[i + 2] = rgb.b;
-                            }
-                            break;
-                    }
-                    
-                    exportCtx.putImageData(imageData, 0, 0);
-                }
-                
-                // Draw grid if enabled
-                if (document.getElementById('exportGrid').checked) {
-                    exportCtx.globalAlpha = 0.1;
-                    exportCtx.strokeStyle = '#ffffff';
-                    exportCtx.lineWidth = 1;
-                    
-                    const gridSize = 32;
-                    for (let x = 0; x <= width; x += gridSize) {
-                        exportCtx.beginPath();
-                        exportCtx.moveTo(x, 0);
-                        exportCtx.lineTo(x, height);
-                        exportCtx.stroke();
-                    }
-                    
-                    for (let y = 0; y <= height; y += gridSize) {
-                        exportCtx.beginPath();
-                        exportCtx.moveTo(0, y);
-                        exportCtx.lineTo(width, y);
-                        exportCtx.stroke();
-                    }
-                    exportCtx.globalAlpha = 1;
-                }
-                
-                // Draw arrows if enabled
-                if (document.getElementById('exportArrows').checked) {
-                    this.drawExportArrows(exportCtx, width, height);
-                }
-                
                 // Export
                 exportCanvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
@@ -1657,43 +1574,6 @@
                     URL.revokeObjectURL(url);
                     this.closeExportModal();
                 }, `image/${format === 'jpg' ? 'jpeg' : format}`, quality);
-            }
-            
-            drawExportArrows(ctx, width, height) {
-                const baseSize = 1024;
-                const scale = width / baseSize;
-                const spacing = 32 * scale;
-                const arrowSize = 8 * scale;
-                
-                ctx.save();
-                ctx.globalAlpha = 0.5;
-                ctx.strokeStyle = '#00ff00';
-                ctx.lineWidth = Math.max(0.5, 1 * scale);
-                
-                for (let x = spacing / 2; x < width; x += spacing) {
-                    for (let y = spacing / 2; y < height; y += spacing) {
-                        const layer = this.layers[this.currentLayer];
-                        const pixel = layer.ctx.getImageData(
-                            x * layer.canvas.width / width,
-                            y * layer.canvas.height / height,
-                            1, 1
-                        ).data;
-                        
-                        // Read flow from red and green channels
-                        const flowX = (pixel[0] - 128) / 128;
-                        const flowY = (pixel[1] - 128) / 128;
-                        const magnitude = Math.sqrt(flowX * flowX + flowY * flowY);
-                        
-                        if (magnitude > 0.1) {
-                            ctx.beginPath();
-                            ctx.moveTo(x, y);
-                            ctx.lineTo(x + flowX * arrowSize, y + flowY * arrowSize);
-                            ctx.stroke();
-                        }
-                    }
-                }
-                
-                ctx.restore();
             }
             
             animate() {
