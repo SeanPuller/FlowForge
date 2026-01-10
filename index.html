@@ -820,6 +820,13 @@
                             <span class="value-display" id="manualDirectionValue">0°</span>
                         </div>
                     </div>
+					
+					<div class="property-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="tileablePainting">
+                            <label for="tileablePainting" class="property-label" style="margin-bottom: 0;">Tileable Painting</label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -970,6 +977,7 @@
                 this.mouseDirection = 0;
                 this.useMouseDirection = true;
                 this.manualDirection = 0;
+                this.isTileable = false;
                 
                 this.lastX = 0;
                 this.lastY = 0;
@@ -1088,11 +1096,14 @@
             setupEventListeners() {
                 // Canvas events
                 this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
-                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
-                this.canvas.addEventListener('mouseleave', this.stopDrawing.bind(this));
+                
+                window.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                window.addEventListener('mouseup', this.stopDrawing.bind(this));
+                
                 this.canvas.addEventListener('mouseenter', this.showBrushCursor.bind(this));
-                this.canvas.addEventListener('mouseleave', this.hideBrushCursor.bind(this));
+                this.canvas.addEventListener('mouseleave', () => {
+                    if (!this.isDrawing) this.hideBrushCursor();
+                });
                 this.canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
                 
                 // Touch events
@@ -1121,6 +1132,10 @@
                 document.getElementById('useMouseDirection').addEventListener('change', (e) => {
                     this.useMouseDirection = e.target.checked;
                     document.getElementById('manualDirectionGroup').style.display = this.useMouseDirection ? 'none' : 'block';
+                });
+                
+                document.getElementById('tileablePainting').addEventListener('change', (e) => {
+                    this.isTileable = e.target.checked;
                 });
 
                 // Radial direction picker
@@ -1359,6 +1374,34 @@
                 this.updateCanvas();
             }
             
+            applyTiledOperation(x, y, radius, callback) {
+                if (!this.isTileable) {
+                    callback(x, y, 0, 0);
+                    return;
+                }
+
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                
+                const offsetsX = [0];
+                if (x + radius >= w) offsetsX.push(-w);
+                if (x - radius <= 0) offsetsX.push(w);
+                
+                const offsetsY = [0];
+                if (y + radius >= h) offsetsY.push(-h);
+                if (y - radius <= 0) offsetsY.push(h);
+                
+                for (const ox of offsetsX) {
+                    for (const oy of offsetsY) {
+                        if (ox === 0 && oy === 0) {
+                            callback(x, y, 0, 0);
+                        } else {
+                            callback(x + ox, y + oy, ox, oy);
+                        }
+                    }
+                }
+            }
+
             drawFlowBrush(ctx, x, y, scale) {
                 const size = this.brushSize * scale;
                 
@@ -1387,12 +1430,14 @@
                 const g = Math.floor(128 + dirY * 127);
                 const b = 0; // Blue channel set to 0
                 
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${this.flowStrength})`);
-                gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-                
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x - size, y - size, size * 2, size * 2);
+                this.applyTiledOperation(x, y, size, (drawX, drawY) => {
+                    const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, size);
+                    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${this.flowStrength})`);
+                    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(drawX - size, drawY - size, size * 2, size * 2);
+                });
             }
             
             drawEraser(ctx, x, y, scale) {
@@ -1401,20 +1446,22 @@
                 // Set composite operation to erase
                 ctx.globalCompositeOperation = 'destination-out';
                 
-                // Draw eraser stroke
-                ctx.beginPath();
-                ctx.moveTo(this.lastX, this.lastY);
-                ctx.lineTo(x, y);
-                ctx.strokeStyle = 'rgba(0,0,0,1)';
-                ctx.lineWidth = size * 2;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-                
-                // Also draw a circle for single clicks
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fill();
+                this.applyTiledOperation(x, y, size, (drawX, drawY, ox, oy) => {
+                    // Draw eraser stroke
+                    ctx.beginPath();
+                    ctx.moveTo(this.lastX + ox, this.lastY + oy);
+                    ctx.lineTo(drawX, drawY);
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
+                    ctx.lineWidth = size * 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                    
+                    // Also draw a circle for single clicks
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
                 
                 // Reset composite operation
                 ctx.globalCompositeOperation = 'source-over';
@@ -1424,6 +1471,10 @@
                 if (this.isDrawing) {
                     this.isDrawing = false;
                     this.saveHistory();
+                    
+                    if (!this.canvas.matches(':hover')) {
+                        this.hideBrushCursor();
+                    }
                 }
             }
             
