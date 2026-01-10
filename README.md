@@ -10,4 +10,3 @@ https://seanpuller.github.io/FlowForge/
 ## TODO
 - Test flowmap output
 - Add tilable painting
-- improve mobile layout
