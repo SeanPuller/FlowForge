@@ -1043,56 +1043,62 @@
                 this.brushCursor.style.display = 'none';
             }
             
-            updateBrushCursor() {
-                const size = this.brushSize * 2 * this.zoom;
-                this.brushCursor.style.width = `${size}px`;
-                this.brushCursor.style.height = `${size}px`;
-                
-                // Update cursor appearance based on tool
-                if (this.currentTool === 'eraser') {
-                    this.brushCursor.style.borderColor = 'rgba(255, 100, 100, 0.8)';
-                    this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 100, 100, 0.5)';
-                } else {
-                    this.brushCursor.style.borderColor = 'rgba(255, 107, 53, 0.8)';
-                    this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 107, 53, 0.5)';
-                }
-            }
+			updateBrushCursor() {
+				const size = this.brushSize * 2 * this.zoom;
+				this.brushCursor.style.width = `${size}px`;
+				this.brushCursor.style.height = `${size}px`;
+				
+				// Update cursor appearance based on tool
+				if (this.currentTool === 'eraser') {
+					this.brushCursor.style.borderColor = 'rgba(255, 100, 100, 0.8)';
+					this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 100, 100, 0.5)';
+				} else {
+					this.brushCursor.style.borderColor = 'rgba(255, 107, 53, 0.8)';
+					this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 107, 53, 0.5)';
+				}
+			}
             
-            handleMouseMove(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                this.mouseX = (e.clientX - rect.left) / this.zoom;
-                this.mouseY = (e.clientY - rect.top) / this.zoom;
-                
-                // Update brush cursor position
-                const canvasRect = this.canvas.getBoundingClientRect();
-                this.brushCursor.style.left = `${e.clientX - canvasRect.left - this.brushSize * this.zoom}px`;
-                this.brushCursor.style.top = `${e.clientY - canvasRect.top - this.brushSize * this.zoom}px`;
-                
-                // Calculate mouse velocity and direction
-                this.mouseVelocityX = this.mouseX - this.lastMouseX;
-                this.mouseVelocityY = this.mouseY - this.lastMouseY;
-                
-                const velocity = Math.sqrt(this.mouseVelocityX ** 2 + this.mouseVelocityY ** 2);
-                if (velocity > 0.5) {
-                    this.mouseDirection = Math.atan2(this.mouseVelocityY, this.mouseVelocityX);
-                }
-                
-                // Update displays
-                document.getElementById('mousePos').textContent = `${Math.round(this.mouseX)}, ${Math.round(this.mouseY)}`;
-                const degrees = Math.round(this.mouseDirection * 180 / Math.PI);
-                document.getElementById('mouseDirection').textContent = `${degrees}°`;
-                
-                const flowX = (Math.cos(this.mouseDirection) * this.flowStrength).toFixed(2);
-                const flowY = (Math.sin(this.mouseDirection) * this.flowStrength).toFixed(2);
-                document.getElementById('flowVector').textContent = `${flowX}, ${flowY}`;
-                
-                if (this.isDrawing) {
-                    this.draw(e);
-                }
-                
-                this.lastMouseX = this.mouseX;
-                this.lastMouseY = this.mouseY;
-            }
+			handleMouseMove(e) {
+				const rect = this.canvas.getBoundingClientRect();
+				this.mouseX = (e.clientX - rect.left) / this.zoom;
+				this.mouseY = (e.clientY - rect.top) / this.zoom;
+
+				// --- FIX START ---
+				// Get the position relative to the canvas wrapper
+				const wrapperRect = this.canvas.parentElement.getBoundingClientRect();
+				const relativeX = e.clientX - wrapperRect.left;
+				const relativeY = e.clientY - wrapperRect.top;
+
+				// Update brush cursor position, centered on the mouse
+				this.brushCursor.style.left = `${relativeX - this.brushSize * this.zoom}px`;
+				this.brushCursor.style.top = `${relativeY - this.brushSize * this.zoom}px`;
+				// --- FIX END ---
+
+				// Calculate mouse velocity and direction
+				this.mouseVelocityX = this.mouseX - this.lastMouseX;
+				this.mouseVelocityY = this.mouseY - this.lastMouseY;
+				
+				const velocity = Math.sqrt(this.mouseVelocityX ** 2 + this.mouseVelocityY ** 2);
+				if (velocity > 0.5) {
+					this.mouseDirection = Math.atan2(this.mouseVelocityY, this.mouseVelocityX);
+				}
+				
+				// Update displays
+				document.getElementById('mousePos').textContent = `${Math.round(this.mouseX)}, ${Math.round(this.mouseY)}`;
+				const degrees = Math.round(this.mouseDirection * 180 / Math.PI);
+				document.getElementById('mouseDirection').textContent = `${degrees}°`;
+				
+				const flowX = (Math.cos(this.mouseDirection) * this.flowStrength).toFixed(2);
+				const flowY = (Math.sin(this.mouseDirection) * this.flowStrength).toFixed(2);
+				document.getElementById('flowVector').textContent = `${flowX}, ${flowY}`;
+				
+				if (this.isDrawing) {
+					this.draw(e);
+				}
+				
+				this.lastMouseX = this.mouseX;
+				this.lastMouseY = this.mouseY;
+			}
             
             handleTouch(e) {
                 e.preventDefault();

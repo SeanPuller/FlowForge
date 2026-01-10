@@ -11,6 +11,5 @@ https://seanpuller.github.io/FlowForge/
 - Add Canvas size selection
 - Add direction picker
 - Update brush properties
-- Fix painting on a resized canvas
 - Fix initial arrow directions
 - Fix tilable painting
