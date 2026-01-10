@@ -1276,7 +1276,7 @@
                 } else {
                     const rad = this.manualDirection * (Math.PI / 180);
                     dirX = Math.cos(rad) * this.flowStrength;
-                    dirY = Math.sin(rad) * this.flowStrength;
+                    dirY = -Math.sin(rad) * this.flowStrength;
                 }
                 
                 // Convert to RGB values (0-255 range)
