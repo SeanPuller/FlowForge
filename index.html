@@ -18,8 +18,8 @@
             --bg-hover: #2a2a2a;
             --text-primary: #e0e0e0;
             --text-secondary: #a0a0a0;
-            --accent: #00d4ff;
-            --accent-hover: #00a8cc;
+            --accent: #ff6b35;
+            --accent-hover: #e55a2b;
             --border: #333;
             --success: #4caf50;
             --warning: #ff9800;
@@ -59,7 +59,7 @@
         .logo-icon {
             width: 24px;
             height: 24px;
-            background: linear-gradient(135deg, var(--accent), #0099cc);
+            background: linear-gradient(135deg, var(--accent), #e55a2b);
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -168,12 +168,12 @@
 
         #brushCursor {
             position: absolute;
-            border: 2px solid rgba(0, 212, 255, 0.8);
+            border: 2px solid rgba(255, 107, 53, 0.8);
             border-radius: 50%;
             pointer-events: none;
             z-index: 1000;
             display: none;
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
         }
 
         /* Properties Panel */
@@ -239,7 +239,7 @@
 
         input[type="range"]::-webkit-slider-thumb:hover {
             transform: scale(1.2);
-            box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
         }
 
         input[type="number"], select {
@@ -293,7 +293,7 @@
 
         .layer-item.active {
             border-color: var(--accent);
-            background: rgba(0, 212, 255, 0.1);
+            background: rgba(255, 107, 53, 0.1);
         }
 
         .layer-item.locked {
@@ -1067,8 +1067,8 @@
                     this.brushCursor.style.borderColor = 'rgba(255, 100, 100, 0.8)';
                     this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 100, 100, 0.5)';
                 } else {
-                    this.brushCursor.style.borderColor = 'rgba(0, 212, 255, 0.8)';
-                    this.brushCursor.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.5)';
+                    this.brushCursor.style.borderColor = 'rgba(255, 107, 53, 0.8)';
+                    this.brushCursor.style.boxShadow = '0 0 10px rgba(255, 107, 53, 0.5)';
                 }
             }
             
