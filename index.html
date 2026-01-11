@@ -166,6 +166,7 @@
             cursor: none;
             width: 100%;
             height: 100%;
+            touch-action: none;
         }
 
         #previewCanvas {
@@ -1400,7 +1401,8 @@
                 const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
                                                   e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
                     clientX: touch.clientX,
-                    clientY: touch.clientY
+                    clientY: touch.clientY,
+                    bubbles: true
                 });
                 this.canvas.dispatchEvent(mouseEvent);
             }
