@@ -1355,7 +1355,10 @@
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
                     
-                    let angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                    const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+                    const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+                    
+                    let angle = Math.atan2(clientY - centerY, clientX - centerX);
                     let degrees = Math.round(angle * (180 / Math.PI));
                     if (degrees < 0) degrees += 360;
                     
@@ -1369,6 +1372,12 @@
                     updateDirection(e);
                 });
                 
+                directionPicker.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    isDraggingDirection = true;
+                    updateDirection(e);
+                }, { passive: false });
+                
                 window.addEventListener('mousemove', (e) => {
                     if (isDraggingDirection) {
                         e.preventDefault();
@@ -1376,7 +1385,18 @@
                     }
                 });
                 
+                window.addEventListener('touchmove', (e) => {
+                    if (isDraggingDirection) {
+                        e.preventDefault();
+                        updateDirection(e);
+                    }
+                }, { passive: false });
+                
                 window.addEventListener('mouseup', () => {
+                    isDraggingDirection = false;
+                });
+                
+                window.addEventListener('touchend', () => {
                     isDraggingDirection = false;
                 });
                 
