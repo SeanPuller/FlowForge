@@ -5,7 +5,8 @@
 
 👉 [Visit the website to start forging](https://seanpuller.github.io/FlowForge/) 🖌️
 
-<img width="3678" height="1328" alt="preview" src="https://github.com/user-attachments/assets/fce10ab0-b00f-47da-9596-ff20cbd35f26" />
+<img width="3454" height="1328" alt="preview 2" src="https://github.com/user-attachments/assets/57122ef3-b4fd-4e2d-8461-0d8861d3ad34" />
+
 
 ## 🎯 Overview
 
@@ -21,6 +22,7 @@ With a simple, intuitive interface, Flow Forge allows you to paint directional f
 - ✅ **Export Support** – Export your flowmap for use in your game engine or pipeline
 - ✅ **Layer Management** – Work with multiple layers for complex flow maps.
 - ✅ **Responsive Design** – Works seamlessly on desktop, tablet or mobile devices.
+- ✅ **Refernce images** – Use reference images to help you forge an accurate flow map.
 
 ## 🛠️ How It Works
 
