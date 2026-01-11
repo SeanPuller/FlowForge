@@ -1481,8 +1481,8 @@
             }
             
             startDrawing(e) {
-                // Prevent drawing on locked layers
-                if (this.layers[this.currentLayer].locked) {
+                // Prevent drawing on locked or reference layers
+                if (this.layers[this.currentLayer].locked || this.layers[this.currentLayer].type === 'reference') {
                     return;
                 }
                 
@@ -1511,8 +1511,8 @@
                 
                 const layer = this.layers[this.currentLayer];
                 
-                // Don't draw on locked layers
-                if (layer.locked) {
+                // Don't draw on locked or reference layers
+                if (layer.locked || layer.type === 'reference') {
                     return;
                 }
                 
