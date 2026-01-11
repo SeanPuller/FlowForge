@@ -566,19 +566,6 @@
         }
 
         /* Flow Visualization */
-        .flow-visualization {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
         .viz-toggle {
             display: flex;
             gap: 0.25rem;
@@ -771,14 +758,6 @@
                 <canvas id="previewCanvas" width="1024" height="1024"></canvas>
                 <div id="brushCursor"></div>
             </div>
-            <div class="flow-visualization">
-                <div class="property-label">Visualization</div>
-                <div class="viz-toggle">
-                    <button class="viz-btn active" onclick="flowMap.setVisualization('flow')">Flow</button>
-                    <button class="viz-btn" onclick="flowMap.setVisualization('arrows')">Arrows</button>
-                    <button class="viz-btn" onclick="flowMap.setVisualization('preview')">Preview</button>
-                </div>
-            </div>
         </div>
 
         <div class="right-sidebar">
@@ -866,6 +845,15 @@
                             <option value="2048">2048 x 2048</option>
                             <option value="4096">4096 x 4096</option>
                         </select>
+                    </div>
+
+                    <div class="property-group">
+                        <label class="property-label">Visualization</label>
+                        <div class="viz-toggle">
+                            <button class="viz-btn active" style="flex: 1;" onclick="flowMap.setVisualization('flow')">Flow</button>
+                            <button class="viz-btn" style="flex: 1;" onclick="flowMap.setVisualization('arrows')">Arrows</button>
+                            <button class="viz-btn" style="flex: 1;" onclick="flowMap.setVisualization('preview')">Preview</button>
+                        </div>
                     </div>
                 </div>
             </div>
