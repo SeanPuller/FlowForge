@@ -223,6 +223,7 @@
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            -webkit-user-select: none;
             user-select: none;
             transition: background-color 0.2s;
         }
@@ -247,7 +248,7 @@
 
         .panel-collapsed {
             flex: 0 0 auto !important;
-            min-height: auto !important;
+            min-height: 0 !important;
         }
 
         .panel-content {
@@ -834,7 +835,7 @@
                 </div>
                 <div class="panel-content">
                     <div class="property-group">
-                        <label class="property-label">Brush Size</label>
+                        <label class="property-label" for="brushSize">Brush Size</label>
                         <div class="property-control">
                             <input type="range" id="brushSize" min="1" max="400" value="60">
                             <span class="value-display" id="brushSizeValue">60</span>
@@ -842,7 +843,7 @@
                     </div>
 
                     <div class="property-group">
-                        <label class="property-label">Flow Strength</label>
+                        <label class="property-label" for="flowStrength">Flow Strength</label>
                         <div class="property-control">
                             <input type="range" id="flowStrength" min="0" max="100" value="100">
                             <span class="value-display" id="flowStrengthValue">100%</span>
@@ -850,7 +851,7 @@
                     </div>
 
                     <div class="property-group">
-                        <label class="property-label">Opacity</label>
+                        <label class="property-label" for="brushOpacity">Opacity</label>
                         <div class="property-control">
                             <input type="range" id="brushOpacity" min="0" max="100" value="100">
                             <span class="value-display" id="brushOpacityValue">100%</span>
@@ -872,7 +873,7 @@
                     </div>
 
                     <div class="property-group" id="manualDirectionGroup" style="display: none;">
-                        <label class="property-label">Direction Angle</label>
+                        <div class="property-label">Direction Angle</div>
                         <div class="property-control" style="flex-direction: column;">
                             <div id="directionPicker" class="direction-picker">
                                 <div id="directionIndicator" class="direction-indicator"></div>
@@ -896,7 +897,7 @@
                 </div>
                 <div class="panel-content" style="padding-bottom: 0;">
                     <div class="property-group">
-                        <label class="property-label">Resolution</label>
+                        <label class="property-label" for="canvasResolution">Resolution</label>
                         <select id="canvasResolution" onchange="flowMap.setResolution(this.value)">
                             <option value="32">32 x 32</option>
                             <option value="64">64 x 64</option>
@@ -910,7 +911,7 @@
                     </div>
 
                     <div class="property-group">
-                        <label class="property-label">Visualization</label>
+                        <div class="property-label">Visualization</div>
                         <div class="viz-toggle">
                             <button class="viz-btn active" style="flex: 1;" onclick="flowMap.setVisualization('flow')">Flow</button>
                             <button class="viz-btn" style="flex: 1;" onclick="flowMap.setVisualization('arrows')">Arrows</button>
@@ -962,12 +963,12 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label">File Name</label>
+                <label class="form-label" for="exportFileName">File Name</label>
                 <input type="text" id="exportFileName" value="flowmap" placeholder="Enter filename">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Resolution</label>
+                <label class="form-label" for="exportResolution">Resolution</label>
                 <select id="exportResolution">
                     <option value="32">32 x 32</option>
                     <option value="64">64 x 64</option>
@@ -981,7 +982,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Format</label>
+                <label class="form-label" for="exportFormat">Format</label>
                 <select id="exportFormat">
                     <option value="png">PNG (Recommended)</option>
                     <option value="jpg">JPEG</option>
@@ -991,7 +992,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Coordinate System</label>
+                <label class="form-label" for="exportTarget">Coordinate System</label>
                 <select id="exportTarget">
                     <option value="opengl" selected>OpenGL (Y+)</option>
                     <option value="directx">DirectX (Y-)</option>
@@ -999,7 +1000,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Quality</label>
+                <label class="form-label" for="exportQuality">Quality</label>
                 <input type="range" id="exportQuality" min="0" max="100" value="100">
                 <span class="value-display" id="exportQualityValue">100%</span>
             </div>
