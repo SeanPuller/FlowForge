@@ -1,12 +1,34 @@
-#
 <img width="1536" height="640" alt="image" src="https://github.com/user-attachments/assets/9a2bb7b2-f52a-4399-a1f6-defaf8344610" />
 
+# 🔨 Flow Forge
+**Forge flow maps for video games with ease.**
 
-## Website
-https://seanpuller.github.io/FlowForge/
-<img width="2558" height="1279" alt="image" src="https://github.com/user-attachments/assets/5d98c18c-54ee-42ca-996d-126809e616ff" />
+👉 [Visit the website to start forging](https://seanpuller.github.io/FlowForge/) 🖌️
+
+<img width="3678" height="1328" alt="preview" src="https://github.com/user-attachments/assets/fce10ab0-b00f-47da-9596-ff20cbd35f26" />
+
+## 🎯 Overview
+
+**Flow Forge** is a web-based painting application designed to help game developers and artists create **flow maps**—visual representations of movement or direction in a game environment. These maps are used in to simulate fluid dynamics.
+
+With a simple, intuitive interface, Flow Forge allows you to paint directional flow fields directly on a canvas, export them in common formats, and integrate them into your game engine.
+
+## 🌟 Features
+
+- ✅ **Intuitive Painting Interface** – Use the brush to paint flow directions with color-coded vectors.
+- ✅ **Multiple Visualization Modes** – Use visualization modes to fine-tune your flow map
+- ✅ **Tileable Brush Support** – Create tileable flow maps with ease.
+- ✅ **Export Support** – Export your flowmap for use in your game engine or pipeline
+- ✅ **Layer Management** – Work with multiple layers for complex flow maps.
+- ✅ **Responsive Design** – Works seamlessly on desktop, tablet or mobile devices.
+
+## 🛠️ How It Works
+
+1. **Open the App** – Visit [Flow Forge](https://seanpuller.github.io/FlowForge/) in your browser.
+2. **Paint Flow Directions** – Use the brush tool to paint your flow map.
+3. **Preview & Refine** – Toggle between visualization modes to fine-tune your flow map.
+4. **Export** – Save your flow map for use in your game engine or pipeline.
 
 
-## TODO
-- Test flowmap output with different engines/shaders
-
+## 📄 License  
+MIT License — See [LICENSE](LICENSE) for details.
