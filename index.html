@@ -425,6 +425,20 @@
             color: var(--error);
         }
 
+        /* Layer Drag and Drop */
+        .layer-item.dragging {
+            opacity: 0.5;
+            background: var(--bg-hover);
+        }
+        
+        .layer-item.drag-over-top {
+            border-top: 2px solid var(--accent);
+        }
+        
+        .layer-item.drag-over-bottom {
+            border-bottom: 2px solid var(--accent);
+        }
+
         /* Buttons */
         .btn {
             background: var(--bg-tertiary);
@@ -996,6 +1010,7 @@
                 this.maxHistory = 50;
                 this.snapshot = null;
                 this.dirty = false;
+                this.draggedLayerIndex = null;
                 
                 // Initialize with two layers: locked background and transparent active layer
                 this.layers = [
@@ -1807,6 +1822,8 @@
                         this.restoreLayer(action.data, action.layerIndex);
                     } else if (action.type === 'add') {
                         this.deleteLayerInternal(action.layerIndex);
+                    } else if (action.type === 'reorder') {
+                        this.moveLayer(action.to, action.from);
                     }
                 }
             }
@@ -1825,6 +1842,8 @@
                         this.deleteLayerInternal(action.layerIndex);
                     } else if (action.type === 'add') {
                         this.createLayerAtIndex(action.layerIndex, action.data);
+                    } else if (action.type === 'reorder') {
+                        this.moveLayer(action.from, action.to);
                     }
                 }
             }
@@ -2001,7 +2020,14 @@
                     
                     if (!layer.locked) {
                         item.onclick = () => this.selectLayer(index);
+                        item.draggable = true;
+                        item.addEventListener('dragstart', (e) => this.handleLayerDragStart(e, index));
+                        item.addEventListener('dragend', (e) => this.handleLayerDragEnd(e));
                     }
+                    
+                    item.addEventListener('dragover', (e) => this.handleLayerDragOver(e, index));
+                    item.addEventListener('dragleave', (e) => this.handleLayerDragLeave(e));
+                    item.addEventListener('drop', (e) => this.handleLayerDrop(e, index));
                     
                     const displayName = layer.name.length > 15 ? layer.name.substring(0, 15) + '...' : layer.name;
                     
@@ -2054,6 +2080,87 @@
                     
                     thumbCtx.drawImage(layer.canvas, 0, 0, 48, 48);
                 });
+            }
+            
+            handleLayerDragStart(e, index) {
+                e.stopPropagation();
+                e.dataTransfer.setData('text/plain', String(index));
+                e.dataTransfer.effectAllowed = 'move';
+                e.target.classList.add('dragging');
+                this.draggedLayerIndex = index;
+            }
+
+            handleLayerDragEnd(e) {
+                e.stopPropagation();
+                e.target.classList.remove('dragging');
+                document.querySelectorAll('.layer-item').forEach(el => {
+                    el.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+                this.draggedLayerIndex = null;
+            }
+
+            handleLayerDragOver(e, index) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move';
+                if (this.draggedLayerIndex === null || this.draggedLayerIndex === index) return;
+                
+                const rect = e.currentTarget.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                
+                e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+                
+                if (e.clientY < midY) {
+                    if (index === 0 && this.layers[0].locked) return;
+                    e.currentTarget.classList.add('drag-over-top');
+                } else {
+                    e.currentTarget.classList.add('drag-over-bottom');
+                }
+            }
+
+            handleLayerDragLeave(e) {
+                if (e.currentTarget.contains(e.relatedTarget)) return;
+                e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+            }
+
+            handleLayerDrop(e, targetIndex) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+                
+                const sourceIndex = this.draggedLayerIndex !== null ? this.draggedLayerIndex : parseInt(e.dataTransfer.getData('text/plain'));
+                if (sourceIndex === null || isNaN(sourceIndex) || sourceIndex === targetIndex) return;
+                
+                const rect = e.currentTarget.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                const dropPosition = e.clientY < midY ? 'before' : 'after';
+                
+                if (targetIndex === 0 && dropPosition === 'before' && this.layers[0].locked) return;
+
+                let newIndex = targetIndex;
+                if (dropPosition === 'after') newIndex++;
+                if (sourceIndex < newIndex) newIndex--;
+                
+                this.addHistoryAction({
+                    type: 'reorder',
+                    from: sourceIndex,
+                    to: newIndex
+                });
+                
+                this.moveLayer(sourceIndex, newIndex);
+            }
+
+            moveLayer(fromIndex, toIndex) {
+                if (fromIndex === toIndex) return;
+                const layer = this.layers[fromIndex];
+                const wasSelected = (this.currentLayer === fromIndex);
+                if (this.currentLayer > fromIndex) this.currentLayer--;
+                this.layers.splice(fromIndex, 1);
+                this.layers.splice(toIndex, 0, layer);
+                if (wasSelected) this.currentLayer = toIndex;
+                else if (this.currentLayer >= toIndex) this.currentLayer++;
+                this.updateLayersList();
+                this.updateCanvas();
             }
             
             selectLayer(index) {
