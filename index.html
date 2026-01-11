@@ -2003,10 +2003,12 @@
                         item.onclick = () => this.selectLayer(index);
                     }
                     
+                    const displayName = layer.name.length > 15 ? layer.name.substring(0, 15) + '...' : layer.name;
+                    
                     item.innerHTML = `
                         <canvas class="layer-thumbnail" id="layerThumb${layer.id}"></canvas>
                         <div class="layer-info">
-                            <div class="layer-name">${layer.name}</div>
+                            <div class="layer-name" title="${layer.name}">${displayName}</div>
                             <div class="layer-type">${layer.type === 'background' ? 'Background' : (layer.type === 'reference' ? 'Reference Image' : 'Direction Map')}</div>
                             <div class="layer-opacity-control" onclick="event.stopPropagation()">
                                 <input type="range" min="0" max="100" value="${Math.round(layer.opacity * 100)}" 
