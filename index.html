@@ -987,6 +987,8 @@
                 this.history = [];
                 this.historyStep = -1;
                 this.maxHistory = 50;
+                this.snapshot = null;
+                this.dirty = false;
                 
                 // Initialize with two layers: locked background and transparent active layer
                 this.layers = [
@@ -1046,7 +1048,6 @@
                 this.handleResize();
                 this.updateCanvas();
                 this.updateLayersList();
-                this.saveHistory();
                 this.animate();
             }
 
@@ -1171,7 +1172,6 @@
                 // Reset history as dimensions changed
                 this.history = [];
                 this.historyStep = -1;
-                this.saveHistory();
                 
                 if (this.gl) {
                     this.gl.viewport(0, 0, size, size);
@@ -1414,6 +1414,12 @@
                 }
                 
                 this.isDrawing = true;
+                this.dirty = false;
+                
+                // Snapshot for undo
+                const layer = this.layers[this.currentLayer];
+                this.snapshot = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                
                 const rect = this.canvas.getBoundingClientRect();
                 const scale = this.canvas.width / rect.width;
                 this.lastX = (e.clientX - rect.left) * scale;
@@ -1427,6 +1433,8 @@
                 const y = (e.clientY - rect.top) * scale;
                 
                 if (!this.isDrawing) return;
+                
+                this.dirty = true;
                 
                 const layer = this.layers[this.currentLayer];
                 
@@ -1573,7 +1581,18 @@
             stopDrawing() {
                 if (this.isDrawing) {
                     this.isDrawing = false;
-                    this.saveHistory();
+                    
+                    if (this.dirty && this.snapshot) {
+                        const layer = this.layers[this.currentLayer];
+                        const after = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                        this.addHistoryAction({
+                            type: 'modify',
+                            layerIndex: this.currentLayer,
+                            before: this.snapshot,
+                            after: after
+                        });
+                    }
+                    this.snapshot = null;
                     
                     if (!this.canvas.matches(':hover')) {
                         this.hideBrushCursor();
@@ -1686,36 +1705,54 @@
                 this.updateCanvas();
             }
             
-            saveHistory() {
-                this.historyStep++;
-                if (this.historyStep < this.history.length) {
-                    this.history.length = this.historyStep;
+            addHistoryAction(action) {
+                // Remove redo steps
+                if (this.historyStep < this.history.length - 1) {
+                    this.history.length = this.historyStep + 1;
                 }
                 
-                const layer = this.layers[this.currentLayer];
-                this.history.push(layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
+                this.history.push(action);
                 
                 if (this.history.length > this.maxHistory) {
                     this.history.shift();
-                    this.historyStep--;
+                } else {
+                    this.historyStep++;
                 }
             }
             
             undo() {
-                if (this.historyStep > 0) {
+                if (this.historyStep >= 0) {
+                    const action = this.history[this.historyStep];
                     this.historyStep--;
-                    const layer = this.layers[this.currentLayer];
-                    layer.ctx.putImageData(this.history[this.historyStep], 0, 0);
-                    this.updateCanvas();
+                    
+                    if (action.type === 'modify') {
+                        if (this.layers[action.layerIndex]) {
+                            this.layers[action.layerIndex].ctx.putImageData(action.before, 0, 0);
+                            this.updateCanvas();
+                        }
+                    } else if (action.type === 'delete') {
+                        this.restoreLayer(action.data, action.layerIndex);
+                    } else if (action.type === 'add') {
+                        this.deleteLayerInternal(action.layerIndex);
+                    }
                 }
             }
             
             redo() {
                 if (this.historyStep < this.history.length - 1) {
                     this.historyStep++;
-                    const layer = this.layers[this.currentLayer];
-                    layer.ctx.putImageData(this.history[this.historyStep], 0, 0);
-                    this.updateCanvas();
+                    const action = this.history[this.historyStep];
+                    
+                    if (action.type === 'modify') {
+                        if (this.layers[action.layerIndex]) {
+                            this.layers[action.layerIndex].ctx.putImageData(action.after, 0, 0);
+                            this.updateCanvas();
+                        }
+                    } else if (action.type === 'delete') {
+                        this.deleteLayerInternal(action.layerIndex);
+                    } else if (action.type === 'add') {
+                        this.createLayerAtIndex(action.layerIndex, action.data);
+                    }
                 }
             }
             
@@ -1727,16 +1764,25 @@
                     return;
                 }
                 
+                const before = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                
                 // Clear to transparent for non-background layers
                 layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
                 this.updateCanvas();
-                this.saveHistory();
+                
+                const after = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                this.addHistoryAction({
+                    type: 'modify',
+                    layerIndex: this.currentLayer,
+                    before: before,
+                    after: after
+                });
             }
             
             addLayer() {
                 const newLayer = {
-                    id: this.layers.length + 1,
-                    name: `Flow Layer ${this.layers.length}`,
+                    id: this.layers.length > 0 ? Math.max(...this.layers.map(l => l.id)) + 1 : 1,
+                    name: `Flow Layer ${this.layers.length + 1}`,
                     type: 'direction',
                     visible: true,
                     opacity: 1,
@@ -1753,6 +1799,11 @@
                 
                 this.layers.push(newLayer);
                 this.currentLayer = this.layers.length - 1; // Select the new layer
+                this.addHistoryAction({ 
+                    type: 'add', 
+                    layerIndex: this.currentLayer,
+                    data: { id: newLayer.id, name: newLayer.name }
+                });
                 this.updateLayersList();
             }
             
@@ -1768,6 +1819,27 @@
                     return;
                 }
                 
+                const layer = this.layers[index];
+                const layerData = {
+                    id: layer.id,
+                    name: layer.name,
+                    type: layer.type,
+                    visible: layer.visible,
+                    opacity: layer.opacity,
+                    locked: layer.locked,
+                    imageData: layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height)
+                };
+                
+                this.addHistoryAction({
+                    type: 'delete',
+                    layerIndex: index,
+                    data: layerData
+                });
+                
+                this.deleteLayerInternal(index);
+            }
+            
+            deleteLayerInternal(index) {
                 this.layers.splice(index, 1);
                 
                 // Adjust current layer index if needed
@@ -1787,6 +1859,54 @@
                         }
                     }
                 }
+                
+                this.updateCanvas();
+                this.updateLayersList();
+            }
+            
+            restoreLayer(data, index) {
+                const restoredLayer = {
+                    id: data.id,
+                    name: data.name,
+                    type: data.type,
+                    visible: data.visible,
+                    opacity: data.opacity,
+                    locked: data.locked,
+                    canvas: document.createElement('canvas'),
+                    ctx: null
+                };
+                
+                restoredLayer.canvas.width = this.canvas.width;
+                restoredLayer.canvas.height = this.canvas.height;
+                restoredLayer.ctx = restoredLayer.canvas.getContext('2d');
+                restoredLayer.ctx.putImageData(data.imageData, 0, 0);
+                
+                this.layers.splice(index, 0, restoredLayer);
+                this.currentLayer = index;
+                
+                this.updateCanvas();
+                this.updateLayersList();
+            }
+            
+            createLayerAtIndex(index, data) {
+                const newLayer = {
+                    id: data ? data.id : (this.layers.length > 0 ? Math.max(...this.layers.map(l => l.id)) + 1 : 1),
+                    name: data ? data.name : `Flow Layer ${this.layers.length + 1}`,
+                    type: 'direction',
+                    visible: true,
+                    opacity: 1,
+                    locked: false,
+                    canvas: document.createElement('canvas'),
+                    ctx: null
+                };
+                
+                newLayer.canvas.width = this.canvas.width;
+                newLayer.canvas.height = this.canvas.height;
+                newLayer.ctx = newLayer.canvas.getContext('2d');
+                newLayer.ctx.clearRect(0, 0, newLayer.canvas.width, newLayer.canvas.height);
+                
+                this.layers.splice(index, 0, newLayer);
+                this.currentLayer = index;
                 
                 this.updateCanvas();
                 this.updateLayersList();
