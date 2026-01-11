@@ -48,6 +48,12 @@
             flex-shrink: 0;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
         .logo {
             display: flex;
             align-items: center;
@@ -666,6 +672,18 @@
             }
         }
 
+        @media (max-width: 600px) {
+            .header {
+                padding: 0.5rem;
+            }
+            .header-left {
+                gap: 0.5rem;
+            }
+            .logo span, .btn-text {
+                display: none;
+            }
+        }
+
         /* Loading Animation */
         .loading {
             display: inline-block;
@@ -736,19 +754,19 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div style="display: flex; align-items: center; gap: 2rem;">
+        <div class="header-left">
             <div class="logo">
                 <div class="logo-icon">F</div>
                 <span>Flow Forge</span>
             </div>
         </div>
         <div class="header-controls">
-                <button class="btn" onclick="document.getElementById('projectLoader').click()" title="Open Project">
+                <button class="btn btn-icon" onclick="document.getElementById('projectLoader').click()" title="Open Project">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
                     </svg>
                 </button>
-                <button class="btn" onclick="flowMap.saveProject()" title="Save Project">
+                <button class="btn btn-icon" onclick="flowMap.saveProject()" title="Save Project">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
                     </svg>
@@ -768,7 +786,7 @@
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                 </svg>
-                Export
+                <span class="btn-text">Export</span>
             </button>
         </div>
     </header>
