@@ -2017,6 +2017,36 @@
                 this.updateLayersList();
             }
             
+            validateSliderInteraction(e) {
+                e.stopPropagation();
+                
+                const input = e.target;
+                const rect = input.getBoundingClientRect();
+                const thumbWidth = 16;
+                
+                let clientX;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                } else {
+                    clientX = e.clientX;
+                }
+                
+                const clickX = clientX - rect.left;
+                const min = parseFloat(input.min);
+                const max = parseFloat(input.max);
+                const val = parseFloat(input.value);
+                const percent = (val - min) / (max - min);
+                
+                const availableWidth = rect.width - thumbWidth;
+                const thumbCenter = (thumbWidth / 2) + (percent * availableWidth);
+                
+                if (Math.abs(clickX - thumbCenter) > 20) {
+                    if (e.cancelable) e.preventDefault();
+                    return false;
+                }
+                return true;
+            }
+
             setLayerOpacity(index, value) {
                 const opacity = parseInt(value) / 100;
                 this.layers[index].opacity = opacity;
@@ -2051,7 +2081,7 @@
                             <div class="layer-type">${layer.type === 'background' ? 'Background' : (layer.type === 'reference' ? 'Reference Image' : 'Direction Map')}</div>
                             <div class="layer-opacity-control">
                                 <input type="range" min="0" max="100" value="${Math.round(layer.opacity * 100)}" 
-                                    oninput="this.nextElementSibling.textContent = this.value + '%'; flowMap.setLayerOpacity(${index}, this.value)" onmouseenter="this.closest('.layer-item').draggable=false" onmouseleave="this.closest('.layer-item').draggable=true" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="height: 3px;">
+                                    oninput="this.nextElementSibling.textContent = this.value + '%'; flowMap.setLayerOpacity(${index}, this.value)" onmouseenter="this.closest('.layer-item').draggable=false" onmouseleave="this.closest('.layer-item').draggable=true" onmousedown="return flowMap.validateSliderInteraction(event)" ontouchstart="return flowMap.validateSliderInteraction(event)" style="height: 3px; touch-action: pan-y;">
                                 <span style="font-size: 0.75rem; color: var(--text-secondary); min-width: 35px; text-align: right;">${Math.round(layer.opacity * 100)}%</span>
                             </div>
                         </div>
