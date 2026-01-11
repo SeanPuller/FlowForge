@@ -997,6 +997,7 @@
                 this.brushOpacity = 1;
                 this.smoothing = 0.2;
                 this.visualization = 'flow';
+                this.needsUpdate = true;
                 
                 // Mouse direction tracking
                 this.mouseX = 0;
@@ -1076,7 +1077,6 @@
                 this.setupDragAndDrop();
                 window.addEventListener('resize', this.handleResize.bind(this));
                 this.handleResize();
-                this.updateCanvas();
                 this.updateLayersList();
                 this.animate();
             }
@@ -1203,13 +1203,17 @@
                 this.history = [];
                 this.historyStep = -1;
                 
+                // Optimize history size for resolution to prevent OOM
+                const pixels = size * size;
+                this.maxHistory = Math.max(5, Math.floor(500 * 1024 * 1024 / (pixels * 4)));
+                
                 if (this.gl) {
                     this.gl.viewport(0, 0, size, size);
                 }
                 
                 // Update UI
                 document.getElementById('canvasSize').textContent = `${size}x${size}`;
-                this.updateCanvas();
+                this.needsUpdate = true;
                 this.updateLayersList();
                 this.updateBrushCursor();
             }
@@ -1284,7 +1288,7 @@
                         after: after
                     });
                     
-                    this.updateCanvas();
+                    this.needsUpdate = true;
                     this.updateLayersList();
                 };
                 img.src = URL.createObjectURL(file);
@@ -1577,7 +1581,7 @@
                 this.lastX = x;
                 this.lastY = y;
                 
-                this.updateCanvas();
+                this.needsUpdate = true;
             }
             
             applyTiledOperation(x, y, radius, callback) {
@@ -1797,7 +1801,7 @@
                 } else {
                     this.previewCanvas.style.display = 'none';
                 }
-                this.updateCanvas();
+                this.needsUpdate = true;
             }
             
             addHistoryAction(action) {
@@ -1823,7 +1827,7 @@
                     if (action.type === 'modify') {
                         if (this.layers[action.layerIndex]) {
                             this.layers[action.layerIndex].ctx.putImageData(action.before, 0, 0);
-                            this.updateCanvas();
+                            this.needsUpdate = true;
                         }
                     } else if (action.type === 'delete') {
                         this.restoreLayer(action.data, action.layerIndex);
@@ -1843,7 +1847,7 @@
                     if (action.type === 'modify') {
                         if (this.layers[action.layerIndex]) {
                             this.layers[action.layerIndex].ctx.putImageData(action.after, 0, 0);
-                            this.updateCanvas();
+                            this.needsUpdate = true;
                         }
                     } else if (action.type === 'delete') {
                         this.deleteLayerInternal(action.layerIndex);
@@ -1867,7 +1871,7 @@
                 
                 // Clear to transparent for non-background layers
                 layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-                this.updateCanvas();
+                this.needsUpdate = true;
                 
                 const after = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
                 this.addHistoryAction({
@@ -1959,7 +1963,7 @@
                     }
                 }
                 
-                this.updateCanvas();
+                this.needsUpdate = true;
                 this.updateLayersList();
             }
             
@@ -1983,7 +1987,7 @@
                 this.layers.splice(index, 0, restoredLayer);
                 this.currentLayer = index;
                 
-                this.updateCanvas();
+                this.needsUpdate = true;
                 this.updateLayersList();
             }
             
@@ -2007,14 +2011,14 @@
                 this.layers.splice(index, 0, newLayer);
                 this.currentLayer = index;
                 
-                this.updateCanvas();
+                this.needsUpdate = true;
                 this.updateLayersList();
             }
             
             setLayerOpacity(index, value) {
                 const opacity = parseInt(value) / 100;
                 this.layers[index].opacity = opacity;
-                this.updateCanvas();
+                this.needsUpdate = true;
             }
             
             updateLayersList() {
@@ -2176,7 +2180,7 @@
                 if (wasSelected) this.currentLayer = toIndex;
                 else if (this.currentLayer >= toIndex) this.currentLayer++;
                 this.updateLayersList();
-                this.updateCanvas();
+                this.needsUpdate = true;
             }
             
             selectLayer(index) {
@@ -2196,7 +2200,7 @@
             
             toggleLayerVisibility(index) {
                 this.layers[index].visible = !this.layers[index].visible;
-                this.updateCanvas();
+                this.needsUpdate = true;
                 this.updateLayersList();
             }
             
@@ -2265,6 +2269,11 @@
                 const delta = now - this.lastFrameTime;
                 this.fps = Math.round(1000 / delta);
                 this.lastFrameTime = now;
+                
+                if (this.needsUpdate) {
+                    this.updateCanvas();
+                    this.needsUpdate = false;
+                }
                 
                 if (this.visualization === 'preview' && this.gl && this.previewProgram) {
                     const gl = this.gl;
