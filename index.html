@@ -1018,7 +1018,7 @@
             constructor() {
                 this.canvas = document.getElementById('flowCanvas');
                 this.previewCanvas = document.getElementById('previewCanvas');
-                this.ctx = this.canvas.getContext('2d');
+                this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
                 this.brushCursor = document.getElementById('brushCursor');
                 
                 this.isDrawing = false;
@@ -1091,7 +1091,7 @@
                 this.layers.forEach(layer => {
                     layer.canvas.width = this.canvas.width;
                     layer.canvas.height = this.canvas.height;
-                    layer.ctx = layer.canvas.getContext('2d');
+                    layer.ctx = layer.canvas.getContext('2d', { willReadFrequently: true });
                     
                     if (layer.type === 'background') {
                         // Set background layer to 0.5, 0.5, 0.0 (RGB: 128, 128, 0)
@@ -1224,7 +1224,7 @@
                 this.layers.forEach((layer, i) => {
                     layer.canvas.width = size;
                     layer.canvas.height = size;
-                    layer.ctx = layer.canvas.getContext('2d');
+                    layer.ctx = layer.canvas.getContext('2d', { willReadFrequently: true });
                     
                     // Restore content scaled
                     layer.ctx.drawImage(savedLayers[i], 0, 0, size, size);
@@ -1917,7 +1917,7 @@
                 
                 newLayer.canvas.width = this.canvas.width;
                 newLayer.canvas.height = this.canvas.height;
-                newLayer.ctx = newLayer.canvas.getContext('2d');
+                newLayer.ctx = newLayer.canvas.getContext('2d', { willReadFrequently: true });
                 // New layers get transparent background
                 newLayer.ctx.clearRect(0, 0, newLayer.canvas.width, newLayer.canvas.height);
                 
@@ -2002,7 +2002,7 @@
                 
                 restoredLayer.canvas.width = this.canvas.width;
                 restoredLayer.canvas.height = this.canvas.height;
-                restoredLayer.ctx = restoredLayer.canvas.getContext('2d');
+                restoredLayer.ctx = restoredLayer.canvas.getContext('2d', { willReadFrequently: true });
                 restoredLayer.ctx.putImageData(data.imageData, 0, 0);
                 
                 this.layers.splice(index, 0, restoredLayer);
@@ -2026,7 +2026,7 @@
                 
                 newLayer.canvas.width = this.canvas.width;
                 newLayer.canvas.height = this.canvas.height;
-                newLayer.ctx = newLayer.canvas.getContext('2d');
+                newLayer.ctx = newLayer.canvas.getContext('2d', { willReadFrequently: true });
                 newLayer.ctx.clearRect(0, 0, newLayer.canvas.width, newLayer.canvas.height);
                 
                 this.layers.splice(index, 0, newLayer);
@@ -2386,7 +2386,7 @@
                     
                     layer.canvas.width = size;
                     layer.canvas.height = size;
-                    layer.ctx = layer.canvas.getContext('2d');
+                    layer.ctx = layer.canvas.getContext('2d', { willReadFrequently: true });
                     
                     newLayers[index] = layer;
 
