@@ -741,23 +741,19 @@
                 <div class="logo-icon">F</div>
                 <span>Flow Forge</span>
             </div>
-            <div class="project-controls" style="display: flex; gap: 0.5rem;">
+        </div>
+        <div class="header-controls">
                 <button class="btn" onclick="document.getElementById('projectLoader').click()" title="Open Project">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
                     </svg>
-                    Open
                 </button>
                 <button class="btn" onclick="flowMap.saveProject()" title="Save Project">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
                     </svg>
-                    Save
                 </button>
                 <input type="file" id="projectLoader" style="display: none" accept=".json" onchange="flowMap.loadProject(this)">
-            </div>
-        </div>
-        <div class="header-controls">
             <button class="btn btn-icon" onclick="flowMap.undo()" title="Undo">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
@@ -767,12 +763,6 @@
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/>
                 </svg>
-            </button>
-            <button class="btn" onclick="flowMap.clearCanvas()">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
-                Clear
             </button>
             <button class="btn btn-primary" onclick="flowMap.showExportModal()">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -1902,30 +1892,7 @@
                     }
                 }
             }
-            
-            clearCanvas() {
-                const layer = this.layers[this.currentLayer];
-                
-                // Don't clear locked background layer
-                if (layer.locked) {
-                    return;
-                }
-                
-                const before = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
-                
-                // Clear to transparent for non-background layers
-                layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-                this.needsUpdate = true;
-                
-                const after = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
-                this.addHistoryAction({
-                    type: 'modify',
-                    layerIndex: this.currentLayer,
-                    before: before,
-                    after: after
-                });
-            }
-            
+                        
             addLayer() {
                 const newLayer = {
                     id: this.layers.length > 0 ? Math.max(...this.layers.map(l => l.id)) + 1 : 1,
