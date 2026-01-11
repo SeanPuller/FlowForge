@@ -9,6 +9,8 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bg-tertiary) transparent;
         }
 
         :root {
@@ -24,6 +26,31 @@
             --success: #4caf50;
             --warning: #ff9800;
             --error: #f44336;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--bg-tertiary);
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--border);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: transparent;
         }
 
         body {
