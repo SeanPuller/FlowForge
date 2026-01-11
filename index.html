@@ -736,9 +736,26 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="logo">
-            <div class="logo-icon">F</div>
-            <span>Flow Forge</span>
+        <div style="display: flex; align-items: center; gap: 2rem;">
+            <div class="logo">
+                <div class="logo-icon">F</div>
+                <span>Flow Forge</span>
+            </div>
+            <div class="project-controls" style="display: flex; gap: 0.5rem;">
+                <button class="btn" onclick="document.getElementById('projectLoader').click()" title="Open Project">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
+                    </svg>
+                    Open
+                </button>
+                <button class="btn" onclick="flowMap.saveProject()" title="Save Project">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                    </svg>
+                    Save
+                </button>
+                <input type="file" id="projectLoader" style="display: none" accept=".json" onchange="flowMap.loadProject(this)">
+            </div>
         </div>
         <div class="header-controls">
             <button class="btn btn-icon" onclick="flowMap.undo()" title="Undo">
@@ -2282,6 +2299,118 @@
                     URL.revokeObjectURL(url);
                     this.closeExportModal();
                 }, `image/${format === 'jpg' ? 'jpeg' : format}`, quality);
+            }
+
+            saveProject() {
+                const projectData = {
+                    version: 1,
+                    resolution: this.canvas.width,
+                    layers: this.layers.map(layer => ({
+                        id: layer.id,
+                        name: layer.name,
+                        type: layer.type,
+                        visible: layer.visible,
+                        opacity: layer.opacity,
+                        locked: layer.locked,
+                        data: layer.canvas.toDataURL()
+                    }))
+                };
+
+                const blob = new Blob([JSON.stringify(projectData)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'flowforge-project.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            loadProject(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const projectData = JSON.parse(e.target.result);
+                        this.restoreProject(projectData);
+                    } catch (err) {
+                        console.error('Failed to load project:', err);
+                        alert('Failed to load project file.');
+                    }
+                    input.value = '';
+                };
+                reader.readAsText(file);
+            }
+
+            restoreProject(data) {
+                const size = data.resolution || 1024;
+                this.canvas.width = size;
+                this.canvas.height = size;
+                this.previewCanvas.width = size;
+                this.previewCanvas.height = size;
+                if (this.gl) this.gl.viewport(0, 0, size, size);
+                
+                document.getElementById('canvasResolution').value = size;
+                document.getElementById('canvasSize').textContent = `${size}x${size}`;
+
+                const pixels = size * size;
+                this.maxHistory = Math.max(5, Math.floor(500 * 1024 * 1024 / (pixels * 4)));
+
+                if (!data.layers || data.layers.length === 0) {
+                    this.finishLoadingProject([]);
+                    return;
+                }
+
+                const newLayers = new Array(data.layers.length);
+                let loadedCount = 0;
+
+                data.layers.forEach((layerData, index) => {
+                    const layer = {
+                        id: layerData.id,
+                        name: layerData.name,
+                        type: layerData.type,
+                        visible: layerData.visible,
+                        opacity: layerData.opacity,
+                        locked: layerData.locked,
+                        canvas: document.createElement('canvas'),
+                        ctx: null
+                    };
+                    
+                    layer.canvas.width = size;
+                    layer.canvas.height = size;
+                    layer.ctx = layer.canvas.getContext('2d');
+                    
+                    newLayers[index] = layer;
+
+                    const img = new Image();
+                    img.onload = () => {
+                        layer.ctx.drawImage(img, 0, 0);
+                        loadedCount++;
+                        
+                        if (loadedCount === data.layers.length) {
+                            this.finishLoadingProject(newLayers);
+                        }
+                    };
+                    img.src = layerData.data;
+                });
+            }
+
+            finishLoadingProject(newLayers) {
+                this.layers = newLayers;
+                this.currentLayer = 0;
+                for (let i = 0; i < this.layers.length; i++) {
+                    if (!this.layers[i].locked) {
+                        this.currentLayer = i;
+                        break;
+                    }
+                }
+                
+                this.history = [];
+                this.historyStep = -1;
+                this.needsUpdate = true;
+                this.updateLayersList();
+                this.handleResize();
             }
 
             togglePanel(panelId) {
