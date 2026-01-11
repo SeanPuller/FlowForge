@@ -1,11 +1,11 @@
-<img width="1536" height="640" alt="image" src="https://github.com/user-attachments/assets/9a2bb7b2-f52a-4399-a1f6-defaf8344610" />
+![Banner](https://github.com/user-attachments/assets/4f558e97-e3e7-41db-91ec-40d4beb9e417)
 
 # 🔨 Flow Forge
 **Forge flow maps for video games with ease.**
 
 👉 [Visit the website to start forging](https://seanpuller.github.io/FlowForge/) 🖌️
 
-<img width="3454" height="1328" alt="preview 2" src="https://github.com/user-attachments/assets/57122ef3-b4fd-4e2d-8461-0d8861d3ad34" />
+<img width="3454" height="1328" alt="preview 3" src="https://github.com/user-attachments/assets/8a479ba8-255c-404a-be75-ca86c86d1d51" />
 
 
 ## 🎯 Overview
