@@ -381,6 +381,7 @@
 
         .layer-info {
             flex: 1;
+            min-width: 0;
         }
 
         .layer-name {
@@ -393,6 +394,13 @@
             color: var(--text-secondary);
         }
 
+        .layer-opacity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
         .layer-visibility {
             width: 24px;
             height: 24px;
@@ -401,6 +409,7 @@
             color: var(--text-secondary);
             cursor: pointer;
             padding: 0;
+            flex-shrink: 0;
         }
 
         .layer-delete {
@@ -412,6 +421,7 @@
             cursor: pointer;
             padding: 0;
             margin-left: 0.25rem;
+            flex-shrink: 0;
         }
 
         .layer-delete:hover {
@@ -1044,6 +1054,7 @@
                 
                 this.initWebGL();
                 this.setupEventListeners();
+                this.setupDragAndDrop();
                 window.addEventListener('resize', this.handleResize.bind(this));
                 this.handleResize();
                 this.updateCanvas();
@@ -1193,6 +1204,71 @@
                 wrapper.style.width = `${size}px`;
                 wrapper.style.height = `${size}px`;
                 this.updateBrushCursor();
+            }
+
+            setupDragAndDrop() {
+                const dropZone = document.body;
+                
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = 'copy';
+                });
+                
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.handleFileDrop(files[0]);
+                    }
+                });
+            }
+
+            handleFileDrop(file) {
+                if (!file.type.startsWith('image/')) return;
+                
+                const img = new Image();
+                img.onload = () => {
+                    this.addLayer(); // Create new layer
+                    const layerIndex = this.currentLayer;
+                    const layer = this.layers[layerIndex];
+                    
+                    // Update layer metadata
+                    layer.name = file.name;
+                    layer.type = 'reference';
+                    
+                    // Capture state before drawing (it's blank from addLayer)
+                    const before = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                    
+                    // Calculate dimensions to fit
+                    const scale = Math.min(
+                        layer.canvas.width / img.width,
+                        layer.canvas.height / img.height
+                    );
+                    const w = img.width * scale;
+                    const h = img.height * scale;
+                    const x = (layer.canvas.width - w) / 2;
+                    const y = (layer.canvas.height - h) / 2;
+                    
+                    layer.ctx.drawImage(img, x, y, w, h);
+                    
+                    // Capture state after
+                    const after = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+                    
+                    // Add modify action to history
+                    this.addHistoryAction({
+                        type: 'modify',
+                        layerIndex: layerIndex,
+                        before: before,
+                        after: after
+                    });
+                    
+                    this.updateCanvas();
+                    this.updateLayersList();
+                };
+                img.src = URL.createObjectURL(file);
             }
 
             setupEventListeners() {
@@ -1912,6 +1988,12 @@
                 this.updateLayersList();
             }
             
+            setLayerOpacity(index, value) {
+                const opacity = parseInt(value) / 100;
+                this.layers[index].opacity = opacity;
+                this.updateCanvas();
+            }
+            
             updateLayersList() {
                 const list = document.getElementById('layersList');
                 list.innerHTML = '';
@@ -1927,8 +2009,13 @@
                     item.innerHTML = `
                         <canvas class="layer-thumbnail" id="layerThumb${layer.id}"></canvas>
                         <div class="layer-info">
-                            <div class="layer-name">${layer.name}</div>
-                            <div class="layer-type">${layer.type === 'background' ? 'Background' : 'Direction Map'}</div>
+                            <div class="layer-name" title="${layer.name}">${layer.name.length > 15 ? layer.name.substring(0, 15) + '...' : layer.name}</div>
+                            <div class="layer-type">${layer.type === 'background' ? 'Background' : (layer.type === 'reference' ? 'Reference Image' : 'Direction Map')}</div>
+                            <div class="layer-opacity-control" onclick="event.stopPropagation()">
+                                
+                                <input type="range" min="0" max="100" value="${Math.round(layer.opacity * 100)}" 
+                                    oninput="flowMap.setLayerOpacity(${index}, this.value)" style="height: 3px;">
+                            </div>
                         </div>
                         <button class="layer-visibility" onclick="event.stopPropagation(); flowMap.toggleLayerVisibility(${index})">
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
