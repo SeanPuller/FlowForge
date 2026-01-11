@@ -2036,9 +2036,9 @@
                         <div class="layer-info">
                             <div class="layer-name" title="${layer.name}">${displayName}</div>
                             <div class="layer-type">${layer.type === 'background' ? 'Background' : (layer.type === 'reference' ? 'Reference Image' : 'Direction Map')}</div>
-                            <div class="layer-opacity-control" onclick="event.stopPropagation()">
+                            <div class="layer-opacity-control">
                                 <input type="range" min="0" max="100" value="${Math.round(layer.opacity * 100)}" 
-                                    oninput="flowMap.setLayerOpacity(${index}, this.value)" style="height: 3px;">
+                                    oninput="flowMap.setLayerOpacity(${index}, this.value)" onmouseenter="this.closest('.layer-item').draggable=false" onmouseleave="this.closest('.layer-item').draggable=true" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="height: 3px;">
                             </div>
                         </div>
                         <button class="layer-visibility" onclick="event.stopPropagation(); flowMap.toggleLayerVisibility(${index})">
