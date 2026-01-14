@@ -10,7 +10,7 @@
 
 ## 🎯 Overview
 
-**Flow Forge** is a web-based painting application designed to help game developers and artists create **flow maps**—visual representations of movement or direction in a game environment. These maps are used in to simulate fluid dynamics.
+**Flow Forge** is a web-based painting application designed to help game developers and artists create **flow maps**.
 
 With a simple, intuitive interface, Flow Forge allows you to paint directional flow fields directly on a canvas, export them in common formats, and integrate them into your game engine.
 
